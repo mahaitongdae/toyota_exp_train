@@ -69,9 +69,9 @@ def built_AMPC_parser():
     parser.add_argument('--off_policy', type=str, default=True)
 
     # env
-    parser.add_argument('--env_id', default='CrossroadEnd2end-v2')
+    parser.add_argument('--env_id', default='CrossroadEnd2end-v3')
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
-    parser.add_argument('--env_kwargs_training_task', type=str, default='left')
+    parser.add_argument('--env_kwargs_training_task', type=str, default='straight')
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
 
@@ -153,7 +153,7 @@ def built_parser(alg_name):
         env = gym.make(args.env_id, **args2envkwargs(args))
         obs_space, act_space = env.observation_space, env.action_space
         args.obs_dim, args.act_dim = obs_space.shape[0], act_space.shape[0]
-        args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180.] + \
+        args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180., 1 / 360.] + \
                          [1., 1 / 15., 0.2] + \
                          [1., 1., 1 / 15.] * args.env_kwargs_num_future_data + \
                          [1 / 30., 1 / 30., 0.2, 1 / 180.] * env.veh_num
