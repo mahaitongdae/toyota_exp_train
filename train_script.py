@@ -39,23 +39,23 @@ NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
 NAME2POLICIES = dict([('Policy4Toyota', Policy4Toyota)])
 NAME2EVALUATORS = dict([('Evaluator', Evaluator), ('None', None)])
 
-def built_AMPC_parser():
+def built_AMPC_parser(task):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='training') # training testing
+    parser.add_argument('--mode', type=str, default='testing') # training testing
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = './results/toyota3lane/experiment-2020-09-03-17-04-11'
+        test_dir = './results/toyota3lane/experiment-2021-01-01-12-19-43'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
         params.update(dict(test_dir=test_dir,
-                           test_iter_list=[100000],
+                           test_iter_list=[95000],
                            test_log_dir=test_log_dir,
                            num_eval_episode=5,
                            eval_log_interval=1,
-                           fixed_steps=120))
+                           fixed_steps=50))
         for key, val in params.items():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
@@ -71,7 +71,7 @@ def built_AMPC_parser():
     # env
     parser.add_argument('--env_id', default='CrossroadEnd2end-v3')
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
-    parser.add_argument('--env_kwargs_training_task', type=str, default='straight')
+    parser.add_argument('--env_kwargs_training_task', type=str, default=task)
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
 
@@ -91,7 +91,7 @@ def built_AMPC_parser():
     parser.add_argument('--explore_sigma', type=float, default=None)
 
     # buffer
-    parser.add_argument('--max_buffer_size', type=int, default=50000)
+    parser.add_argument('--max_buffer_size', type=int, default=100000)
     parser.add_argument('--replay_starts', type=int, default=3000)
     parser.add_argument('--replay_batch_size', type=int, default=256)
     parser.add_argument('--replay_alpha', type=float, default=0.6)
@@ -125,9 +125,9 @@ def built_AMPC_parser():
 
     # optimizer (PABAL)
     parser.add_argument('--max_sampled_steps', type=int, default=0)
-    parser.add_argument('--max_iter', type=int, default=30000)
-    parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--num_learners', type=int, default=3)
+    parser.add_argument('--max_iter', type=int, default=100000)
+    parser.add_argument('--num_workers', type=int, default=3)
+    parser.add_argument('--num_learners', type=int, default=6)
     parser.add_argument('--num_buffers', type=int, default=1)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=20)
@@ -147,20 +147,20 @@ def built_AMPC_parser():
 
     return parser.parse_args()
 
-def built_parser(alg_name):
+def built_parser(alg_name, task):
     if alg_name == 'AMPC':
-        args = built_AMPC_parser()
+        args = built_AMPC_parser(task)
         env = gym.make(args.env_id, **args2envkwargs(args))
         obs_space, act_space = env.observation_space, env.action_space
         args.obs_dim, args.act_dim = obs_space.shape[0], act_space.shape[0]
-        args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180., 1 / 360.] + \
+        args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180., 1 / 270.] + \
                          [1., 1 / 15., 0.2] + \
                          [1., 1., 1 / 15.] * args.env_kwargs_num_future_data + \
                          [1 / 30., 1 / 30., 0.2, 1 / 180.] * env.veh_num
         return args
 
-def main(alg_name):
-    args = built_parser(alg_name)
+def main(alg_name, task):
+    args = built_parser(alg_name, task)
     logger.info('begin training agents with parameter {}'.format(str(args)))
     if args.mode == 'training':
         ray.init(object_store_memory=5120*1024*1024)
@@ -193,4 +193,6 @@ def main(alg_name):
 
 
 if __name__ == '__main__':
-    main('AMPC')
+    main('AMPC','left')
+    # main('AMPC', 'straight')
+    # main('AMPC', 'right')
