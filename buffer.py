@@ -59,7 +59,13 @@ class ReplayBuffer(object):
         for i in idxes:
             data = self._storage[i]
             obs_t, action, reward, obs_tp1, done, ref_index = data
-            obses_t.append(np.array(obs_t, copy=False))
+            np_obs = np.array(obs_t)
+            # print(np_obs.shape)
+            np_obs[2] = np_obs[2] + 0.4 * np.random.random(np_obs[2].shape) - 0.2
+            np_obs[3] = np_obs[3] + 1.0 * np.random.random(np_obs[3].shape) - 0.5
+            np_obs[4] = np_obs[4] + 1.0 * np.random.random(np_obs[4].shape) - 0.5
+            np_obs[5] = np_obs[5] + 16.0 * np.random.random(np_obs[5].shape) - 8.0
+            obses_t.append(np_obs)
             actions.append(np.array(action, copy=False))
             rewards.append(reward)
             obses_tp1.append(np.array(obs_tp1, copy=False))
