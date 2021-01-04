@@ -180,4 +180,5 @@ def test_evaluator():
 
 
 if __name__ == '__main__':
-    atest_trained_model('./results/toyota3lane/experiment-2021-01-03-12-38-00/models','./results/toyota3lane/experiment-2021-01-03-12-38-00/models', 100000)
+    atest_trained_model('results/toyota3lane/0104/experiment-2021-01-03-12-38-00/models',
+                        'results/toyota3lane/0104/experiment-2021-01-03-12-38-00/models', 100000)
