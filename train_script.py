@@ -46,12 +46,12 @@ def built_AMPC_parser():
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/toyota3lane/0104/experiment-2021-01-04-01-15-35'
+        test_dir = 'results/toyota3lane/experiment-2021-01-06-00-47-39'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
         params.update(dict(test_dir=test_dir,
-                           test_iter_list=[100000],
+                           test_iter_list=[140000],
                            test_log_dir=test_log_dir,
                            num_eval_episode=5,
                            eval_log_interval=1,
@@ -60,7 +60,11 @@ def built_AMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='straight buffer noise')
+    parser.add_argument('--memo', type=str, default='left for increase pf and decrease density')
+
+    parser.add_argument('--env_version', type='str', default='1d2b82d2')
+    parser.add_argument('--train_version', type='str', default='1d2b82d2')
+
 
     # trainer
     parser.add_argument('--policy_type', type=str, default='Policy4Toyota')
