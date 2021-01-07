@@ -11,7 +11,7 @@ import logging
 
 import gym
 import numpy as np
-from gym.envs.user_defined.toyota_env_cbf.dynamics_and_models import EnvironmentModel
+from gym.envs.user_defined.toyota_exp_cbf.dynamics_and_models import EnvironmentModel
 
 from preprocessor import Preprocessor
 from utils.misc import TimerStat, args2envkwargs
@@ -184,7 +184,7 @@ class AMPCLearner(object):
             pg_loss=total_loss.numpy(),
             punish_factor=pf.numpy(),
             pg_grads_norm=pg_grad_norm.numpy(),
-            barrier_lambda=self.model.barrier_lambda.numpy()
+            barrier_lambda=self.barrier_lambda_schedule(iteration).numpy()
         ))
 
         grads = pg_grad

@@ -42,16 +42,16 @@ NAME2EVALUATORS = dict([('Evaluator', Evaluator), ('None', None)])
 def built_AMPC_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='training') # training testing
+    parser.add_argument('--mode', type=str, default='testing') # training testing
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/toyota3lane/experiment-2021-01-05-14-26-47'
+        test_dir = 'results/toyota3lane/experiment-2021-01-07-20-58-28'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
         params.update(dict(test_dir=test_dir,
-                           test_iter_list=[100000],
+                           test_iter_list=[125000],
                            test_log_dir=test_log_dir,
                            num_eval_episode=5,
                            eval_log_interval=1,
@@ -60,10 +60,10 @@ def built_AMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='test on mac')
+    parser.add_argument('--memo', type=str, default='test cbf')
 
-    parser.add_argument('--env_version', type=str, default='1d2b82d2')
-    parser.add_argument('--train_version', type=str, default='59536748')
+    parser.add_argument('--env_version', type=str, default='2ddbf2ec')
+    parser.add_argument('--train_version', type=str, default='ea45901c')
 
 
     # trainer
@@ -77,7 +77,7 @@ def built_AMPC_parser():
     # env
     parser.add_argument('--env_id', default='CrossroadEnd2end-v6') # v6 for cbf envs
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
-    parser.add_argument('--env_kwargs_training_task', type=str, default='straight')
+    parser.add_argument('--env_kwargs_training_task', type=str, default='left')
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
 
@@ -132,9 +132,9 @@ def built_AMPC_parser():
     # optimizer (PABAL)
     parser.add_argument('--max_sampled_steps', type=int, default=0)
     parser.add_argument('--max_iter', type=int, default=150100)
-    parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--num_learners', type=int, default=1)
-    parser.add_argument('--num_buffers', type=int, default=1)
+    parser.add_argument('--num_workers', type=int, default=3)
+    parser.add_argument('--num_learners', type=int, default=38)
+    parser.add_argument('--num_buffers', type=int, default=5)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=20)
     parser.add_argument('--eval_interval', type=int, default=5000)
@@ -153,9 +153,9 @@ def built_AMPC_parser():
 
     # barrier function
     parser.add_argument("--barrier_steps", type=int, default=3)
-    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.3, 40000, 0.2])
+    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.5, 40000, 0.4])
     parser.add_argument("--barrier_lambda_interval", type=int, default=10000)
-    parser.add_argument("--barrier_lineup-loc", type=float, default=1.5)
+    parser.add_argument("--barrier_lineup_loc", type=float, default=5.0)
 
     return parser.parse_args()
 
