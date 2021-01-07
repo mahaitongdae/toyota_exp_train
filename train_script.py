@@ -75,7 +75,7 @@ def built_AMPC_parser():
     parser.add_argument('--off_policy', type=str, default=True)
 
     # env
-    parser.add_argument('--env_id', default='CrossroadEnd2end-v5')
+    parser.add_argument('--env_id', default='CrossroadEnd2end-v6') # v6 for cbf envs
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
     parser.add_argument('--env_kwargs_training_task', type=str, default='straight')
     parser.add_argument('--obs_dim', default=None)
@@ -150,6 +150,12 @@ def built_AMPC_parser():
     parser.add_argument('--model_load_dir', type=str, default=None)
     parser.add_argument('--model_load_ite', type=int, default=None)
     parser.add_argument('--ppc_load_dir', type=str, default=None)
+
+    # barrier function
+    parser.add_argument("--barrier_steps", type=int, default=3)
+    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.3, 40000, 0.2])
+    parser.add_argument("--barrier_lambda_interval", type=int, default=10000)
+    parser.add_argument("--barrier_lineup-loc", type=float, default=1.5)
 
     return parser.parse_args()
 
