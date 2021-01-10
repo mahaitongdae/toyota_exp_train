@@ -60,23 +60,6 @@ class ReplayBuffer(object):
             data = self._storage[i]
             obs_t, action, reward, obs_tp1, done, ref_index = data
             np_obs = np.array(obs_t)
-            # print(np_obs.shape)
-            # np_obs[2] = np_obs[2] + 0.4 * np.random.random(np_obs[2].shape) - 0.2
-            # np_obs[3] = np_obs[3] + 1.0 * np.random.random(np_obs[3].shape) - 0.5
-            # np_obs[4] = np_obs[4] + 1.0 * np.random.random(np_obs[4].shape) - 0.5
-            # np_obs[5] = np_obs[5] + 16.0 * np.random.random(np_obs[5].shape) - 8.0
-            # if np_obs[3] <= -10:
-            # np_obs[1] = np_obs[1] + np.random.normal(0.0, 0.3, np_obs[1].shape)
-            # np_obs[2] = np_obs[2] + np.random.normal(0.0, 0.5, np_obs[2].shape)
-            # np_obs[3] = np_obs[3] + np.random.normal(0.0, 0.5, np_obs[3].shape)
-            # np_obs[4] = np_obs[4] + np.random.normal(0.0, 0.5, np_obs[3].shape)
-            # np_obs[5] = np_obs[5] + np.random.normal(0.0, 8.0, np_obs[3].shape)
-            # else:
-            np_obs[1] = np_obs[1] + np.random.normal(0.0, 0.2, np_obs[1].shape)
-            np_obs[2] = np_obs[2] + np.random.normal(0.0, 0.3, np_obs[2].shape)
-            np_obs[3] = np_obs[3] + np.random.normal(0.0, 0.25, np_obs[3].shape)
-            np_obs[4] = np_obs[4] + np.random.normal(0.0, 0.25, np_obs[3].shape)
-            np_obs[5] = np_obs[5] + np.random.normal(0.0, 5.0, np_obs[3].shape)
             obses_t.append(np_obs)
             actions.append(np.array(action, copy=False))
             rewards.append(reward)
