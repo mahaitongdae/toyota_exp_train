@@ -42,16 +42,16 @@ NAME2EVALUATORS = dict([('Evaluator', Evaluator), ('None', None)])
 def built_AMPC_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='testing') # training testing
+    parser.add_argument('--mode', type=str, default='training') # training testing
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/toyota3lane/experiment-2021-01-07-20-58-28'
+        test_dir = 'results/toyota3lane/experiment-2021-01-08-10-03-37'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
         params.update(dict(test_dir=test_dir,
-                           test_iter_list=[125000],
+                           test_iter_list=[150000],
                            test_log_dir=test_log_dir,
                            num_eval_episode=5,
                            eval_log_interval=1,
@@ -60,10 +60,10 @@ def built_AMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='test cbf')
+    parser.add_argument('--memo', type=str, default='constraint less conservative')
 
-    parser.add_argument('--env_version', type=str, default='2ddbf2ec')
-    parser.add_argument('--train_version', type=str, default='ea45901c')
+    parser.add_argument('--env_version', type=str, default='c59c72ae mahaitong <mahaitongdae@foxmail.com> on 2021/1/7 at 下午11:54')
+    parser.add_argument('--train_version', type=str, default='b0094f8e mahaitong <mahaitongdae@foxmail.com> on 2021/1/7 at 下午11:50')
 
 
     # trainer
@@ -133,7 +133,7 @@ def built_AMPC_parser():
     parser.add_argument('--max_sampled_steps', type=int, default=0)
     parser.add_argument('--max_iter', type=int, default=150100)
     parser.add_argument('--num_workers', type=int, default=3)
-    parser.add_argument('--num_learners', type=int, default=38)
+    parser.add_argument('--num_learners', type=int, default=30)
     parser.add_argument('--num_buffers', type=int, default=5)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=20)
@@ -152,10 +152,10 @@ def built_AMPC_parser():
     parser.add_argument('--ppc_load_dir', type=str, default=None)
 
     # barrier function
-    parser.add_argument("--barrier_steps", type=int, default=3)
-    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.5, 40000, 0.4])
+    parser.add_argument("--barrier_steps", type=int, default=5)
+    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.6, 40000, 0.6])
     parser.add_argument("--barrier_lambda_interval", type=int, default=10000)
-    parser.add_argument("--barrier_lineup_loc", type=float, default=5.0)
+    parser.add_argument("--barrier_lineup_loc", type=float, default=3.0)
 
     return parser.parse_args()
 
