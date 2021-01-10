@@ -62,8 +62,8 @@ def built_AMPC_parser():
 
     parser.add_argument('--memo', type=str, default='constraint less conservative')
 
-    parser.add_argument('--env_version', type=str, default='c59c72ae mahaitong <mahaitongdae@foxmail.com> on 2021/1/7 at 下午11:54')
-    parser.add_argument('--train_version', type=str, default='b0094f8e mahaitong <mahaitongdae@foxmail.com> on 2021/1/7 at 下午11:50')
+    parser.add_argument('--env_version', type=str, default='75dee152')
+    parser.add_argument('--train_version', type=str, default='9812aff1')
 
 
     # trainer
@@ -152,10 +152,11 @@ def built_AMPC_parser():
     parser.add_argument('--ppc_load_dir', type=str, default=None)
 
     # barrier function
-    parser.add_argument("--barrier_steps", type=int, default=5)
-    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.6, 40000, 0.6])
+    parser.add_argument("--barrier_steps", type=int, default=3)
+    parser.add_argument("--barrier_lambda_scheduler", type=float, default=[0.1, 40000, 0.05])
     parser.add_argument("--barrier_lambda_interval", type=int, default=10000)
-    parser.add_argument("--barrier_lineup_loc", type=float, default=3.0)
+    parser.add_argument("--if_log_barrier", type=bool, default=False)
+    parser.add_argument("--barrier_lineup_loc", type=float, default=1.0)
 
     return parser.parse_args()
 
