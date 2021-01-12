@@ -60,11 +60,9 @@ def built_AMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='constraint less conservative')
-
+    parser.add_argument('--memo', type=str, default='cbf')
     parser.add_argument('--env_version', type=str, default='75dee152')
     parser.add_argument('--train_version', type=str, default='9812aff1')
-
 
     # trainer
     parser.add_argument('--policy_type', type=str, default='Policy4Toyota')
