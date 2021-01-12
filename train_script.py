@@ -39,6 +39,7 @@ NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
 NAME2POLICIES = dict([('Policy4Toyota', Policy4Toyota)])
 NAME2EVALUATORS = dict([('Evaluator', Evaluator), ('None', None)])
 
+
 def built_AMPC_parser():
     parser = argparse.ArgumentParser()
 
@@ -60,10 +61,10 @@ def built_AMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='left for increase pf and decrease density')
+    parser.add_argument('--memo', type=str, default='')
 
-    parser.add_argument('--env_version', type=str, default='1d2b82d2')
-    parser.add_argument('--train_version', type=str, default='59536748')
+    parser.add_argument('--env_version', type=str, default='')
+    parser.add_argument('--train_version', type=str, default='')
 
 
     # trainer
@@ -153,17 +154,19 @@ def built_AMPC_parser():
 
     return parser.parse_args()
 
+
 def built_parser(alg_name):
     if alg_name == 'AMPC':
         args = built_AMPC_parser()
         env = gym.make(args.env_id, **args2envkwargs(args))
         obs_space, act_space = env.observation_space, env.action_space
         args.obs_dim, args.act_dim = obs_space.shape[0], act_space.shape[0]
-        args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180.] + \
+        args.obs_scale = [0.2, 1., 2., 1 / 50., 1 / 50, 1 / 180.] + \
                          [1., 1 / 15., 0.2] + \
                          [1., 1., 1 / 15.] * args.env_kwargs_num_future_data + \
-                         [1 / 30., 1 / 30., 0.2, 1 / 180.] * env.veh_num
+                         [1 / 50., 1 / 50., 0.2, 1 / 180.] * env.veh_num
         return args
+
 
 def main(alg_name):
     args = built_parser(alg_name)
