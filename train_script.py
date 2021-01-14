@@ -76,7 +76,7 @@ def built_AMPC_parser():
     parser.add_argument('--off_policy', type=str, default=True)
 
     # env
-    parser.add_argument('--env_id', default='CrossroadEnd2end-v4')
+    parser.add_argument('--env_id', default='CrossroadEnd2end-v2')
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
     parser.add_argument('--env_kwargs_training_task', type=str, default='left')
     parser.add_argument('--obs_dim', default=None)
@@ -88,7 +88,7 @@ def built_AMPC_parser():
     parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[25])
     parser.add_argument('--gamma', type=float, default=1.)
     parser.add_argument('--gradient_clip_norm', type=float, default=10)
-    parser.add_argument('--init_punish_factor', type=float, default=10.)
+    parser.add_argument('--init_punish_factor', type=float, default=5.)
     parser.add_argument('--pf_enlarge_interval', type=int, default=20000)
     parser.add_argument('--pf_amplifier', type=float, default=1.)
 
@@ -127,15 +127,15 @@ def built_AMPC_parser():
     parser.add_argument('--obs_preprocess_type', type=str, default='scale')
     parser.add_argument('--obs_scale', type=list, default=None)
     parser.add_argument('--reward_preprocess_type', type=str, default='scale')
-    parser.add_argument('--reward_scale', type=float, default=1.)
+    parser.add_argument('--reward_scale', type=float, default=0.1)
     parser.add_argument('--reward_shift', type=float, default=0.)
 
     # optimizer (PABAL)
     parser.add_argument('--max_sampled_steps', type=int, default=0)
     parser.add_argument('--max_iter', type=int, default=100100)
-    parser.add_argument('--num_workers', type=int, default=3)
-    parser.add_argument('--num_learners', type=int, default=16)
-    parser.add_argument('--num_buffers', type=int, default=3)
+    parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--num_learners', type=int, default=4)
+    parser.add_argument('--num_buffers', type=int, default=1)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=20)
     parser.add_argument('--eval_interval', type=int, default=5000)
