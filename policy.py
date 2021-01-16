@@ -35,6 +35,14 @@ class Policy4Toyota(tf.Module):
         policy_lr_schedule = PolynomialDecay(*self.args.policy_lr_schedule)
         self.policy_optimizer = self.tf.keras.optimizers.Adam(policy_lr_schedule, name='adam_opt')
 
+        in_dim_PI, out_dim_PI = self.args.in_dim_PI, self.args.out_dim_PI
+        n_hiddens, n_units, hidden_activation = self.args.num_hidden_layers, self.args.num_hidden_units, \
+                                                self.args.hidden_activation
+
+        self.PI_policy = policy_model_cls(in_dim_PI, n_hiddens, n_units, 'gelu', out_dim_PI, name='policy',
+                                       output_activation='linear')
+
+
         self.models = (self.policy,)
         self.optimizers = (self.policy_optimizer,)
 
@@ -143,4 +151,6 @@ def test_mlp():
 
 
 if __name__ == '__main__':
-    test_policy_with_Qs()
+    from train_script import built_AMPC_parser, built_parser
+    args = built_parser('AMPC')
+
