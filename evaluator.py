@@ -36,7 +36,7 @@ class Evaluator(object):
             self.log_dir = self.args.test_log_dir
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
-
+        self.args.obs_scale = None
         self.preprocessor = Preprocessor((self.args.obs_dim, ), self.args.obs_preprocess_type, self.args.reward_preprocess_type,
                                          self.args.obs_scale, self.args.reward_scale, self.args.reward_shift,
                                          gamma=self.args.gamma)
@@ -65,13 +65,25 @@ class Evaluator(object):
         reward_info_dict_list = []
         action_list = []
         done = 0
-        obs = self.env.reset()
+        obs, veh_num, veh_mode = self.env.reset()
         if render: self.env.render()
         if steps is not None:
             for _ in range(steps):
-                processed_obs = self.preprocessor.tf_process_obses(obs)
-                action = self.policy_with_value.compute_mode(processed_obs[np.newaxis, :])
-                obs, reward, done, info = self.env.step(action.numpy()[0])
+                self.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180.] + \
+                                 [1., 1 / 15., 0.2] + \
+                                 [1., 1., 1 / 15.] * self.args.env_kwargs_num_future_data + \
+                                 [1 / 30., 1 / 30., 0.2, 1 / 180.] * veh_num
+                self.preprocessor.obs_scale = np.array(self.obs_scale)
+                processed_obs = self.preprocessor.process_obs(obs)
+
+                obs_ego, obs_other = processed_obs[0: self.args.state_ego_dim + self.args.state_track_dim], \
+                                     processed_obs[self.args.state_ego_dim + self.args.state_track_dim:]
+
+                obs_ego = obs_ego[np.newaxis, :]
+                obs_other = np.reshape(obs_other, [-1, self.args.state_other_dim])
+
+                action = self.policy_with_value.compute_mode(obs_ego, obs_other)
+                obs, reward, done, info, veh_num, veh_mode = self.env.step(action.numpy()[0])
                 reward_info_dict_list.append(info['reward_info'])
                 if render: self.env.render()
                 reward_list.append(reward)

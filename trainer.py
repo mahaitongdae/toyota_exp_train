@@ -8,9 +8,9 @@
 # =====================================
 
 import logging
+# -*- coding:utf-8 -*-
 
 import ray
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 

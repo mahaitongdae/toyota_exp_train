@@ -6,7 +6,7 @@
 # @Author  : Yang Guan (Tsinghua Univ.)
 # @FileName: train_script.py
 # =====================================
-
+# -*- coding:utf-8 -*-
 import argparse
 import datetime
 import json
@@ -75,11 +75,19 @@ def built_AMPC_parser():
     parser.add_argument('--off_policy', type=str, default=True)
 
     # env
-    parser.add_argument('--env_id', default='CrossroadEnd2end-v5')
+    parser.add_argument('--env_id', default='CrossroadEnd2end-v0')
     parser.add_argument('--env_kwargs_num_future_data', type=int, default=0)
-    parser.add_argument('--env_kwargs_training_task', type=str, default='straight')
+    parser.add_argument('--env_kwargs_training_task', type=str, default='left')
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
+
+    parser.add_argument('--PI_in_dim', dest='list', type=int, default=[4])  # dimension of each surrounding vehicle state
+    parser.add_argument('--PI_out_dim', dest='list', type=int, default=[])
+    parser.add_argument('--max_veh_num', type=int, default=15)
+    parser.add_argument('--state_ego_dim', type=int, default=6)
+    parser.add_argument('--state_track_dim', type=int, default=3)
+    parser.add_argument('--state_other_dim', type=int, default=4)
+
 
     # learner
     parser.add_argument('--alg_name', default='AMPC')
@@ -98,8 +106,8 @@ def built_AMPC_parser():
 
     # buffer
     parser.add_argument('--max_buffer_size', type=int, default=50000)
-    parser.add_argument('--replay_starts', type=int, default=3000)
-    parser.add_argument('--replay_batch_size', type=int, default=256)
+    parser.add_argument('--replay_starts', type=int, default=300)
+    parser.add_argument('--replay_batch_size', type=int, default=64)
     parser.add_argument('--replay_alpha', type=float, default=0.6)
     parser.add_argument('--replay_beta', type=float, default=0.4)
     parser.add_argument('--buffer_log_interval', type=int, default=40000)
@@ -122,6 +130,15 @@ def built_AMPC_parser():
     parser.add_argument('--policy_out_activation', type=str, default='tanh')
     parser.add_argument('--action_range', type=float, default=None)
 
+    # model for PI_net
+    parser.add_argument('--PI_policy_cls', type=str, default='MLP')
+    parser.add_argument('--PI_policy_lr_schedule', type=list, default=[3e-5, 100000, 1e-5])
+    parser.add_argument('--PI_num_hidden_layers', type=int, default=3)
+    parser.add_argument('--PI_num_hidden_units', type=int, default=128)
+    parser.add_argument('--PI_hidden_activation', type=str, default='elu')
+    parser.add_argument('--PI_policy_out_activation', type=str, default='linear')
+
+
     # preprocessor
     parser.add_argument('--obs_preprocess_type', type=str, default='scale')
     parser.add_argument('--obs_scale', type=list, default=None)
@@ -133,7 +150,7 @@ def built_AMPC_parser():
     parser.add_argument('--max_sampled_steps', type=int, default=0)
     parser.add_argument('--max_iter', type=int, default=100100)
     parser.add_argument('--num_workers', type=int, default=1)
-    parser.add_argument('--num_learners', type=int, default=7)
+    parser.add_argument('--num_learners', type=int, default=1)
     parser.add_argument('--num_buffers', type=int, default=1)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=20)
@@ -158,7 +175,11 @@ def built_parser(alg_name):
         args = built_AMPC_parser()
         env = gym.make(args.env_id, **args2envkwargs(args))
         obs_space, act_space = env.observation_space, env.action_space
-        args.obs_dim, args.act_dim = obs_space.shape[0], act_space.shape[0]
+        # todo: check
+        args.PI_in_dim, args.PI_out_dim = args.state_other_dim, args.max_veh_num * args.state_other_dim + 1
+        args.obs_dim = args.state_ego_dim + args.state_track_dim + args.PI_out_dim
+        args.act_dim = act_space.shape[0]
+
         args.obs_scale = [0.2, 1., 2., 1 / 30., 1 / 30, 1 / 180.] + \
                          [1., 1 / 15., 0.2] + \
                          [1., 1., 1 / 15.] * args.env_kwargs_num_future_data + \
@@ -169,7 +190,7 @@ def main(alg_name):
     args = built_parser(alg_name)
     logger.info('begin training agents with parameter {}'.format(str(args)))
     if args.mode == 'training':
-        ray.init(object_store_memory=5120*1024*1024)
+        ray.init(object_store_memory=1024*1024*1024)
         os.makedirs(args.result_dir)
         with open(args.result_dir + '/config.json', 'w', encoding='utf-8') as f:
             json.dump(vars(args), f, ensure_ascii=False, indent=4)

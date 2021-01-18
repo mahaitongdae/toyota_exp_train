@@ -35,16 +35,18 @@ class Policy4Toyota(tf.Module):
         policy_lr_schedule = PolynomialDecay(*self.args.policy_lr_schedule)
         self.policy_optimizer = self.tf.keras.optimizers.Adam(policy_lr_schedule, name='adam_opt')
 
-        in_dim_PI, out_dim_PI = self.args.in_dim_PI, self.args.out_dim_PI
-        n_hiddens, n_units, hidden_activation = self.args.num_hidden_layers, self.args.num_hidden_units, \
-                                                self.args.hidden_activation
+        # add PI network
+        PI_in_dim, PI_out_dim = self.args.PI_in_dim, self.args.PI_out_dim
+        n_hiddens, n_units, hidden_activation = self.args.PI_num_hidden_layers, self.args.PI_num_hidden_units, \
+                                                self.args.PI_hidden_activation
 
-        self.PI_policy = policy_model_cls(in_dim_PI, n_hiddens, n_units, 'gelu', out_dim_PI, name='policy',
-                                       output_activation='linear')
+        self.PI_policy = policy_model_cls(PI_in_dim, n_hiddens, n_units, hidden_activation, PI_out_dim, name='PI_policy',
+                                       output_activation=self.args.PI_policy_out_activation)
+        PI_policy_lr_schedule = PolynomialDecay(*self.args.PI_policy_lr_schedule)
+        self.PI_policy_optimizer = self.tf.keras.optimizers.Adam(PI_policy_lr_schedule, name='adam_opt_PI')
 
-
-        self.models = (self.policy,)
-        self.optimizers = (self.policy_optimizer,)
+        self.models = (self.policy,self.PI_policy)
+        self.optimizers = (self.policy_optimizer, self.PI_policy_optimizer)
 
     def save_weights(self, save_dir, iteration):
         model_pairs = [(model.name, model) for model in self.models]
@@ -67,22 +69,44 @@ class Policy4Toyota(tf.Module):
 
     @tf.function
     def apply_gradients(self, iteration, grads):
-        self.policy_optimizer.apply_gradients(zip(grads, self.policy.trainable_weights))
+        PI_policy_len = len(self.PI_policy.trainable_weights)
+
+        PI_policy_grad, policy_grad = grads[:PI_policy_len], grads[PI_policy_len:]
+        self.PI_policy_optimizer.apply_gradients(zip(PI_policy_grad, self.PI_policy.trainable_weights))
+        self.policy_optimizer.apply_gradients(zip(policy_grad, self.policy.trainable_weights))
 
     @tf.function
-    def compute_mode(self, obs):
-        logits = self.policy(obs)
+    def compute_mode(self, obs_ego, obs_other):
+        obs_ego = tf.cast(obs_ego, dtype=tf.float32)
+        state_other = tf.reduce_sum(self.PI_policy(obs_other), axis=0)
+        state_other = tf.expand_dims(state_other, axis=0)
+        state = tf.concat([obs_ego, state_other], axis=1)
+        logits = self.policy(state)
         mean, _ = self.tf.split(logits, num_or_size_splits=2, axis=-1)
         return self.args.action_range * self.tf.tanh(mean) if self.args.action_range is not None else mean
 
+    # @tf.function
+    # def compute_action(self, obs):
+    #     with self.tf.name_scope('compute_action') as scope:
+    #         logits = self.policy(obs)
+    #         if self.args.deterministic_policy:
+    #             mean, log_std = self.tf.split(logits, num_or_size_splits=2, axis=-1)
+    #             return self.args.action_range * self.tf.tanh(mean) if self.args.action_range is not None else mean, 0.
+
     @tf.function
-    def compute_action(self, obs):
+    def compute_action(self, obs_ego, obs_other):
         with self.tf.name_scope('compute_action') as scope:
-            logits = self.policy(obs)
+            obs_ego = tf.cast(obs_ego, dtype=tf.float32)
+            state_other = tf.reduce_sum(self.PI_policy(obs_other), axis=0)
+            state_other = tf.expand_dims(state_other, axis=0)
+            # print(state_other)
+            # print(obs_ego)
+            state = tf.concat([obs_ego, state_other], axis=1)
+            # print(state)
+            logits = self.policy(state)
             if self.args.deterministic_policy:
                 mean, log_std = self.tf.split(logits, num_or_size_splits=2, axis=-1)
                 return self.args.action_range * self.tf.tanh(mean) if self.args.action_range is not None else mean, 0.
-
 
 def test_policy():
     import gym
