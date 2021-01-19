@@ -177,7 +177,7 @@ class AMPCLearner(object):
         with writer.as_default():
             self.tf.summary.trace_export(name="policy_forward_and_backward", step=0)
 
-    @tf.function
+    # @tf.function
     def compute_gradient(self, samples, rb, indexs, iteration):
         self.get_batch_data(samples, rb, indexs)
         # mb_obs = self.tf.constant(self.batch_data['batch_obs'])
@@ -206,6 +206,7 @@ class AMPCLearner(object):
                     real_punish_terms_sum.append(real_punish_term)
                     veh2veh4real_sum.append(veh2veh4real)
                     veh2road4real_sum.append(veh2road4real)
+                    pg_loss = self.tf.expand_dims(pg_loss, axis=0)
                     pg_loss_total = self.tf.concat([pg_loss_total, pg_loss], 0)
         pg_loss_sum = self.tf.reduce_mean(pg_loss_total, axis=0)
         print('pg_loss', pg_loss_sum)

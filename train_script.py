@@ -106,8 +106,8 @@ def built_AMPC_parser():
 
     # buffer
     parser.add_argument('--max_buffer_size', type=int, default=50000)
-    parser.add_argument('--replay_starts', type=int, default=300)
-    parser.add_argument('--replay_batch_size', type=int, default=64)
+    parser.add_argument('--replay_starts', type=int, default=3000)
+    parser.add_argument('--replay_batch_size', type=int, default=256)
     parser.add_argument('--replay_alpha', type=float, default=0.6)
     parser.add_argument('--replay_beta', type=float, default=0.4)
     parser.add_argument('--buffer_log_interval', type=int, default=40000)
