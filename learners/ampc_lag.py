@@ -19,7 +19,8 @@ from utils.misc import TimerStat, args2envkwargs
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-CONSTRAINTS_CLIP_MINUS = -0.1
+CONSTRAINTS_CLIP_MINUS = 0.0
+CONSTRAINTS_LIM = 0.2
 
 
 class LMAMPCLearner(object):
@@ -98,39 +99,25 @@ class LMAMPCLearner(object):
             actions, _ = self.policy_with_value.compute_action(processed_obses)
             obses, rewards, constraints = self.model.rollout_out(actions)
             constraints_clip = self.tf.clip_by_value(constraints, CONSTRAINTS_CLIP_MINUS, 100)
-            mu = self.policy_with_value.compute_mu(self.tf.stop_gradient(obses))
-            mu_clip = self.tf.clip_by_value(mu, 0, self.args.mu_clip_value)
+            # mu = self.policy_with_value.compute_mu(self.tf.stop_gradient(obses))
+            # mu_clip = self.tf.clip_by_value(mu, 0, self.args.mu_clip_value)
             rewards_sum += self.preprocessor.tf_process_rewards(rewards)
-            cs_sum += self.tf.reduce_sum(self.tf.multiply(mu_clip, self.tf.stop_gradient(constraints_clip)), 1)
-            punish_terms_sum += self.tf.reduce_sum(self.tf.multiply(self.tf.stop_gradient(mu_clip), constraints_clip),1)
-            constraints_sum += constraints
-            # punish_terms_sum += self.tf.reduce_sum(self.tf.multiply(self.tf.stop_gradient(mu), constraints_clip), 1)
-            # if step == 0:
-            #     temp_1 = constraints_all[:,con_dim :]
-            #     constraints_all = self.tf.concat([constraints, temp_1], 1)
-            # elif step <= self.num_rollout_list_for_policy_update[0] - 2:
-            #     temp_1 = constraints_all[:, 0: con_dim * step]
-            #     temp_2 = constraints_all[:, con_dim * (step + 1):]
-            #     constraints_all = self.tf.concat([temp_1, constraints, temp_2], 1)
-            # else:
-            #     temp_1 = constraints_all[:, 0: con_dim * step]
-            #     constraints_all = self.tf.concat([temp_1, constraints], 1)
-            # real_punish_terms_sum += real_punish_term
-            # veh2veh4real_sum += veh2veh4real
-            # veh2road4real_sum += veh2road4real
+            # cs_sum += self.tf.reduce_sum(self.tf.multiply(mu_clip, self.tf.stop_gradient(constraints_clip)), 1)
+            # punish_terms_sum += self.tf.reduce_sum(self.tf.multiply(self.tf.stop_gradient(mu_clip), constraints_clip),1)
+            constraints_sum += constraints_clip
 
-        # constraints_all_clip = self.tf.clip_by_value(constraints_all, -1, 100)
+        constraints_violation_sum = constraints_sum - CONSTRAINTS_LIM
         # pg loss
         obj_loss = -self.tf.reduce_mean(rewards_sum)
-        # pg_loss = obj_loss + self.tf.reduce_sum(self.tf.reduce_mean(self.tf.multiply(self.tf.stop_gradient(mu), constraints_all_clip),0))
-        # cs_loss = -self.tf.reduce_sum(self.tf.reduce_mean(self.tf.multiply(mu_clip, self.tf.stop_gradient(constraints_all_clip)), 0)) # complementary slackness loss
-        punish_terms = self.tf.reduce_mean(punish_terms_sum)
+        processed_start_obses = self.preprocessor.tf_process_obses(start_obses)
+        mu = self.policy_with_value.compute_mu(processed_start_obses)
+        punish_terms = self.tf.reduce_mean(self.tf.multiply(self.tf.stop_gradient(mu), constraints_violation_sum))
         pg_loss = obj_loss + punish_terms
-        cs_loss = -self.tf.reduce_mean(cs_sum)
-        # real_punish_term = self.tf.reduce_mean(real_punish_terms_sum)
-        # veh2veh4real = self.tf.reduce_mean(veh2veh4real_sum)
-        # veh2road4real = self.tf.reduce_mean(veh2road4real_sum)
-        constraints = self.tf.reduce_mean(constraints_sum)
+        cs_loss = -self.tf.reduce_mean(self.tf.multiply(mu, self.tf.stop_gradient(constraints_violation_sum))) # complementary slackness loss
+        # punish_terms = self.tf.reduce_sum(self.tf.reduce_mean(self.tf.multiply(self.tf.stop_gradient(mu), constraints_violation),0))
+        # pg_loss = obj_loss + punish_terms
+        # cs_loss = -self.tf.reduce_mean(cs_sum)
+        constraints = self.tf.reduce_mean(constraints_violation_sum)
 
         return obj_loss, punish_terms, cs_loss, pg_loss, constraints
 
@@ -170,9 +157,6 @@ class LMAMPCLearner(object):
             grad_time=self.grad_timer.mean,
             obj_loss=obj_loss.numpy(),
             punish_terms=punish_terms.numpy(),
-            # real_punish_term=real_punish_term.numpy(),
-            # veh2veh4real=veh2veh4real.numpy(),
-            # veh2road4real=veh2road4real.numpy(),
             constraints=constraints.numpy(),
             cs_loss=cs_loss.numpy(),
             pg_loss=pg_loss.numpy(),

@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 NAME2WORKERCLS = dict([('OffPolicyWorker', OffPolicyWorker)])
-NAME2LEARNERCLS = dict([('LMAMPC', LMAMPCLearner)])
+NAME2LEARNERCLS = dict([('LMAMPC-v3', LMAMPCLearner)])
 NAME2BUFFERCLS = dict([('normal', ReplayBuffer), ('None', None)])
 NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
                           ('SingleProcessOffPolicy', SingleProcessOffPolicyOptimizer)])
@@ -60,7 +60,7 @@ def built_LMAMPC_parser():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()
 
-    parser.add_argument('--memo', type=str, default='change envs') # mu dim 32, back to adam, add mu update interval
+    parser.add_argument('--memo', type=str, default='reset states no infeasible, increase negative grad zone') # mu dim 32, back to adam, add mu update interval
 
     # parser.add_argument('--env_version', type=str, default='1d2b82d2')
     # parser.add_argument('--train_version', type=str, default='76f7d2b4')
@@ -83,7 +83,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--con_dim', type=int, default=1)
 
     # learner
-    parser.add_argument('--alg_name', default='LMAMPC')
+    parser.add_argument('--alg_name', default='LMAMPC-v3')
     parser.add_argument('--M', type=int, default=1)
     parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[25])
     parser.add_argument('--gamma', type=float, default=1.)
@@ -126,7 +126,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--policy_out_activation', type=str, default='tanh')
     parser.add_argument('--mu_out_activation', type=str, default='relu')
     parser.add_argument('--action_range', type=float, default=None)
-    parser.add_argument('--mu_update_interval', type=int, default=20)
+    parser.add_argument('--mu_update_interval', type=int, default=10)
 
     # preprocessor
     parser.add_argument('--obs_preprocess_type', type=str, default='scale')
@@ -137,7 +137,7 @@ def built_LMAMPC_parser():
 
     # optimizer (PABAL)
     parser.add_argument('--max_sampled_steps', type=int, default=0)
-    parser.add_argument('--max_iter', type=int, default=100100)
+    parser.add_argument('--max_iter', type=int, default=500100)
     parser.add_argument('--num_workers', type=int, default=6)
     parser.add_argument('--num_learners', type=int, default=30)
     parser.add_argument('--num_buffers', type=int, default=8)
@@ -153,8 +153,8 @@ def built_LMAMPC_parser():
     parser.add_argument('--result_dir', type=str, default=results_dir)
     parser.add_argument('--log_dir', type=str, default=results_dir + '/logs')
     parser.add_argument('--model_dir', type=str, default=results_dir + '/models')
-    parser.add_argument('--model_load_dir', type=str, default=None)
-    parser.add_argument('--model_load_ite', type=int, default=None)
+    parser.add_argument('--model_load_dir', type=str, default='results/toyota3lane/experiment-2021-03-11-16-42-55/models')
+    parser.add_argument('--model_load_ite', type=int, default=0)
     parser.add_argument('--ppc_load_dir', type=str, default=None)
 
     return parser.parse_args()

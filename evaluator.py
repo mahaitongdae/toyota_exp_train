@@ -217,4 +217,4 @@ def test_evaluator():
 
 
 if __name__ == '__main__':
-    static_region('./results/toyota3lane/experiment-2021-03-01-14-52-21/models', 100000)
+    static_region('./results/toyota3lane/experiment-2021-03-11-23-58-57/models', 0)
