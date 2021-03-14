@@ -126,7 +126,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--policy_out_activation', type=str, default='tanh')
     parser.add_argument('--mu_out_activation', type=str, default='relu')
     parser.add_argument('--action_range', type=float, default=None)
-    parser.add_argument('--mu_update_interval', type=int, default=10)
+    parser.add_argument('--mu_update_interval', type=int, default=5)
 
     # preprocessor
     parser.add_argument('--obs_preprocess_type', type=str, default='scale')
