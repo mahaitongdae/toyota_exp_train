@@ -3,7 +3,7 @@ from learners.ampc import AMPCLearner
 from policy import Policy4Lagrange
 import gym
 from train_script import built_LMAMPC_parser
-from learners.ampc_lag import LMAMPCLearner
+from learners.ampc_lag import LMAMPCLearnerv3
 from buffer import ReplayBuffer
 from optimizer import OffPolicyAsyncOptimizer
 from tester import Tester
@@ -24,7 +24,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 NAME2WORKERCLS = dict([('OffPolicyWorker', OffPolicyWorker)])
-NAME2LEARNERCLS = dict([('LMAMPC', LMAMPCLearner)])
+NAME2LEARNERCLS = dict([('LMAMPC', LMAMPCLearnerv3)])
 NAME2BUFFERCLS = dict([('normal', ReplayBuffer), ('None', None)])
 NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer)])
 NAME2POLICIES = dict([('Policy4Lagrange', Policy4Lagrange)])
@@ -54,7 +54,7 @@ while count < 100:
 # flat_weights = getFlat()
 del local_worker
 print('learner start')
-local_learner = LMAMPCLearner(Policy4Lagrange, args)
+local_learner = LMAMPCLearnerv3(Policy4Lagrange, args)
 # ppc_params = virtual_worker.get_ppc_params()
 # weights = np.load('weights.npy',allow_pickle=True).tolist()
 # local_learner.set_weights(weights)

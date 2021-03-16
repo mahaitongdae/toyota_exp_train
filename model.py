@@ -28,11 +28,18 @@ class MLPNet(Model):
                                         kernel_initializer=tf.keras.initializers.Orthogonal(np.sqrt(2.)),
                                         dtype=tf.float32) for _ in range(num_hidden_layers-1)])
         output_activation = kwargs['output_activation'] if kwargs.get('output_activation') else 'linear'
-        self.outputs = Dense(output_dim,
-                             activation=output_activation,
-                             kernel_initializer=tf.keras.initializers.Orthogonal(1.),
-                             bias_initializer=tf.keras.initializers.Constant(0.),
-                             dtype=tf.float32)
+        if 'output_bias' in kwargs.keys():
+            self.outputs = Dense(output_dim,
+                                 activation=output_activation,
+                                 kernel_initializer=tf.keras.initializers.Orthogonal(1.),
+                                 bias_initializer=tf.keras.initializers.Constant(kwargs.get('output_bias')),
+                                 dtype=tf.float32)
+        else:
+            self.outputs = Dense(output_dim,
+                                 activation=output_activation,
+                                 kernel_initializer=tf.keras.initializers.Orthogonal(1.),
+                                 bias_initializer=tf.keras.initializers.Constant(0.),
+                                 dtype=tf.float32)
         self.build(input_shape=(None, input_dim))
 
     def call(self, x, **kwargs):
