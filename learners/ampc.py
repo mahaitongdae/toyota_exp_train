@@ -143,7 +143,7 @@ class AMPCLearner(object):
         return obj_loss, punish_term_for_training, punish_loss, pg_loss, \
                real_punish_term, veh2veh4real, veh2road4real, pf
 
-    @tf.function
+    # @tf.function
     def forward_and_backward(self, obs, ite, ref_index, veh_num, veh_mode):
         obj_loss, punish_term_for_training, punish_loss, pg_loss, \
         real_punish_term, veh2veh4real, veh2road4real, pf \
@@ -178,22 +178,21 @@ class AMPCLearner(object):
             self.tf.summary.trace_export(name="policy_forward_and_backward", step=0)
 
     # @tf.function
-    def compute_gradient(self, samples, rb, indexs, iteration):
-        self.get_batch_data(samples, rb, indexs)
+    def compute_gradient_son(self, iteration):
+        # self.get_batch_data(samples, rb, indexs)
         # mb_obs = self.tf.constant(self.batch_data['batch_obs'])
         iteration = self.tf.convert_to_tensor(iteration, self.tf.int32)
         # mb_ref_index = self.tf.constant(self.batch_data['batch_ref_index'], self.tf.int32)
-
-        rewards_sum, punish_terms_for_training_sum, real_punish_terms_sum, veh2veh4real_sum, veh2road4real_sum = [], [], [], [], []
-        pg_loss_total = self.tf.constant([])
+        obj_loss_sum, punish_terms_for_training_sum, real_punish_terms_sum, veh2veh4real_sum, veh2road4real_sum, punish_loss_sum = \
+            self.tf.constant(0.), self.tf.constant(0.), self.tf.constant(0.), self.tf.constant(0.), self.tf.constant(0.), self.tf.constant(0.)
+        pg_loss_total = self.tf.constant(0.)
 
         with self.tf.GradientTape(persistent=True) as tape:
             for i in range(len(self.batch_data['batch_obs'])):
-                obs = self.tf.expand_dims(self.tf.constant(self.batch_data['batch_obs'][i]), axis=0)
-                ref_index = self.tf.expand_dims(self.tf.constant(self.batch_data['batch_ref_index'][i], self.tf.int32),
-                                                axis=0)
-                veh_num = self.tf.constant(self.batch_data['batch_veh_num'][i], self.tf.int32)
-                veh_mode = self.tf.constant(self.batch_data['batch_veh_mode'][i])
+                obs = self.tf.expand_dims(self.batch_data['batch_obs'][i], axis=0)
+                ref_index = self.tf.expand_dims(self.batch_data['batch_ref_index'][i], axis=0)
+                veh_num = self.batch_data['batch_veh_num'][i]
+                veh_mode = self.batch_data['batch_veh_mode'][i]
 
                 with self.grad_timer:
                     obj_loss, \
@@ -201,20 +200,27 @@ class AMPCLearner(object):
                     real_punish_term, veh2veh4real, veh2road4real, pf = \
                         self.forward_and_backward(obs, iteration, ref_index, veh_num, veh_mode)
 
-                    rewards_sum.append(obj_loss)
-                    punish_terms_for_training_sum.append(punish_term_for_training)
-                    real_punish_terms_sum.append(real_punish_term)
-                    veh2veh4real_sum.append(veh2veh4real)
-                    veh2road4real_sum.append(veh2road4real)
-                    pg_loss = self.tf.expand_dims(pg_loss, axis=0)
-                    pg_loss_total = self.tf.concat([pg_loss_total, pg_loss], 0)
-        pg_loss_sum = self.tf.reduce_mean(pg_loss_total, axis=0)
-        print('pg_loss', pg_loss_sum)
+                    obj_loss_sum += obj_loss
+                    punish_terms_for_training_sum += punish_term_for_training
+                    punish_loss_sum += punish_loss
+                    real_punish_terms_sum += real_punish_term
+                    veh2veh4real_sum += veh2veh4real
+                    veh2road4real_sum += veh2road4real
+                    pg_loss_total += pg_loss
+            pg_loss = pg_loss_total / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+
+            obj_loss = obj_loss_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+            punish_term_for_training = punish_terms_for_training_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+            punish_loss = punish_loss_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+            real_punish_term = real_punish_terms_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+            veh2veh4real = veh2road4real_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+            veh2road4real = veh2road4real_sum / self.tf.convert_to_tensor(len(self.batch_data['batch_obs']), dtype=self.tf.float32)
+
         with self.tf.name_scope('policy_gradient') as scope:
-            pg_grad = tape.gradient(pg_loss_sum, self.policy_with_value.policy.trainable_weights)
+            pg_grad = tape.gradient(pg_loss, self.policy_with_value.policy.trainable_weights)
 
         with self.tf.name_scope('PI_policy_gradient') as scope:
-            PI_grad = tape.gradient(pg_loss_sum, self.policy_with_value.PI_policy.trainable_weights)
+            PI_grad = tape.gradient(pg_loss, self.policy_with_value.PI_policy.trainable_weights)
 
         pg_grad, pg_grad_norm = self.tf.clip_by_global_norm(pg_grad, self.args.gradient_clip_norm)
         PI_grad, PI_grad_norm = self.tf.clip_by_global_norm(PI_grad, self.args.gradient_clip_norm)
@@ -231,12 +237,34 @@ class AMPCLearner(object):
         #         self.forward_and_backward(mb_obs, iteration, mb_ref_index)
         #
         #     pg_grad, pg_grad_norm = self.tf.clip_by_global_norm(pg_grad, self.args.gradient_clip_norm)
+        return PI_grad, pg_grad, PI_grad_norm, pg_grad_norm, obj_loss, punish_term_for_training, real_punish_term, veh2veh4real, \
+        veh2road4real, punish_loss, pg_loss, pf
+
+    def compute_gradient(self, samples, rb, indexs, iteration):
+        self.get_batch_data(samples, rb, indexs)
+        batch_data_obs_list, batch_data_ref_index_list, batch_data_veh_num_list, batch_data_veh_mode_list = [],[], [], []
+        for i in range(len(self.batch_data['batch_obs'])):
+            batch_data_obs_list.append(self.tf.constant(self.batch_data['batch_obs'][i]))
+        self.batch_data['batch_obs'] = batch_data_obs_list
+        # print(type(self.batch_data['batch_obs']), len(self.batch_data['batch_obs']))
+        for i in range(len(self.batch_data['batch_ref_index'])):
+            batch_data_ref_index_list.append(self.tf.constant(self.batch_data['batch_ref_index'][i]))
+        self.batch_data['batch_ref_index'] = batch_data_ref_index_list
+        for i in range(len(self.batch_data['batch_veh_num'])):
+            batch_data_veh_num_list.append(self.tf.constant(self.batch_data['batch_veh_num'][i]))
+        self.batch_data['batch_veh_num'] = batch_data_veh_num_list
+        for i in range(len(self.batch_data['batch_veh_mode'])):
+            batch_data_veh_mode_list.append(self.tf.constant(self.batch_data['batch_veh_mode'][i]))
+        self.batch_data['batch_veh_mode'] = batch_data_veh_mode_list
+
+        PI_grad, pg_grad, PI_grad_norm, pg_grad_norm, obj_loss, punish_terms_for_training, real_punish_term, veh2veh4real, \
+        veh2road4real, punish_loss, pg_loss, pf = self.compute_gradient_son(iteration)
 
         self.stats.update(dict(
             iteration=iteration,
             grad_time=self.grad_timer.mean,
             obj_loss=obj_loss.numpy(),
-            punish_term_for_training=punish_term_for_training.numpy(),
+            punish_term_for_training=punish_terms_for_training.numpy(),
             real_punish_term=real_punish_term.numpy(),
             veh2veh4real=veh2veh4real.numpy(),
             veh2road4real=veh2road4real.numpy(),

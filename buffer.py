@@ -11,6 +11,7 @@ import logging
 import random
 
 import numpy as np
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +71,8 @@ class ReplayBuffer(object):
 
         return np.array(obses_t), np.array(actions), np.array(rewards), \
                np.array(obses_tp1), np.array(dones), np.array(ref_indexs), np.array(vehs_num), np.array(vehs_mode, dtype=object)
+        # return tf.constant(obses_t), tf.constant(actions), tf.constant(rewards), \
+        #        tf.constant(obses_tp1), tf.constant(dones), tf.constant(ref_indexs), tf.constant(vehs_num), tf.constant(vehs_mode, dtype=object)
 
     def sample_idxes(self, batch_size):
         return np.array([random.randint(0, len(self._storage) - 1) for _ in range(batch_size)], dtype=np.int32)
