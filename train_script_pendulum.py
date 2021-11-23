@@ -44,20 +44,20 @@ NAME2EVALUATORS = dict([('Evaluator', Evaluator), ('None', None)])
 def built_LMAMPC_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='training') # training testing
+    parser.add_argument('--mode', type=str, default='testing') # training testing
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/toyota3lane/LMbaseline-2021-05-21-13-06-23'
+        test_dir = 'results/toyota3lane/LMAMPC-v2-2021-11-23-11-27-33'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
         params.update(dict(test_dir=test_dir,
-                           test_iter_list=[500000],
+                           test_iter_list=[300000],
                            test_log_dir=test_log_dir,
                            num_eval_episode=10,
                            eval_log_interval=1,
-                           fixed_steps=50))
+                           fixed_steps=200))
         for key, val in params.items():
             parser.add_argument("-" + key, default=val)
         return parser.parse_args()

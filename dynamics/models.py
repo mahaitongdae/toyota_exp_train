@@ -43,7 +43,7 @@ class PendulumModel(object):
 
     def __init__(self):
         self.max_speed = 8
-        self.max_torque = 2.
+        self.max_torque = 10.
         self.g = 10.
         self.m = 1.
         self.l = 1.
@@ -60,7 +60,7 @@ class PendulumModel(object):
 
     def compute_rewards(self, obses, actions):
         rewards = -0.1 * tf.square(actions)
-        constraints = tf.stack([- obses[:, 0] - self.max_th, self.max_th - obses[:, 0]], axis=1)
+        constraints = tf.stack([- obses[:, 0] - self.max_th, - self.max_th + obses[:, 0]], axis=1)
         return rewards, constraints
 
     def _action_transformation_for_end2end(self, actions):
