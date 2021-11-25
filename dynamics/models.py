@@ -77,7 +77,7 @@ class UpperTriangleModel(DynamicsModel):
         self.action_range = 1
 
     def compute_rewards(self, obses, actions):
-        rewards = -0.04 * ( tf.square(obses[:, 0]) + tf.square(obses[:, 1]))
+        rewards = -0.04 * ( tf.square(obses[:, 0]) + tf.square(obses[:, 1]) + 10 * tf.square(actions[:, 0]))
         constraints = tf.stack([tf.abs(obses[:, 0]) - 5., tf.abs(obses[:, 1] - 5.)], axis=1)
         return rewards, constraints
 
