@@ -164,6 +164,32 @@ class PendulumModel(object):
     def angle_normalize(self, x):
         return (((x + np.pi) % (2 * np.pi)) - np.pi)
 
+
+class Air3dModel(DynamicsModel):
+    def __init__(self):
+        super(Air3dModel, self).__init__()
+        self.evader_spd = 5.
+        self.pursuer_spd = 5.
+        self.pursuer_turn_rate = 1.
+
+    def f_xu(self, x, u, frequency=10.0):
+        px, py, phi = tf.cast(x[:, 0], dtype=tf.float32), tf.cast(x[:, 1], dtype=tf.float32), tf.cast(x[:, 2], dtype=tf.float32)
+        u = tf.cast(u[:, 0], dtype=tf.float32)
+        dx = -self.evader_spd + self.pursuer_spd * tf.cos(phi) + tf.multiply(py, u)
+        dy = self.pursuer_spd * tf.sin(phi) - tf.multiply(px, u)
+        dphi = self.pursuer_turn_rate - u
+        new_phi = (phi + 1 / frequency * dphi) % (2 * np.pi)
+        return tf.stack([px + 1 / frequency * dx, py + 1 / frequency * dy, new_phi], axis=1)
+
+    def compute_rewards(self, obses, actions):
+        obses = tf.cast(obses, dtype=tf.float32)
+        actions = tf.cast(actions, dtype=tf.float32)
+        rewards = - tf.square(actions[:, 0])
+        d = tf.square(obses[:, 0]) + tf.square(obses[:, 1])
+        constraints = tf.stack([25. - d], axis=1)
+        return rewards, constraints
+
+
 def try_pendulum_env():
     import gym
     import time
@@ -187,7 +213,12 @@ def try_up_model():
     model.reset(np.array([[0.,1.],[0.,1.],[0.,1.]]))
     model.rollout_out([[0.],[0.],[0.]])
 
+def try_air3d_model():
+    model = Air3dModel()
+    model.reset(np.array([[0., 1., 0.],[0., 1., 0.],[0., 1., 0.]]))
+    model.rollout_out([[0.],[0.],[0.]])
+
 
 if __name__ == '__main__':
-    try_up_model()
+    try_air3d_model()
 
