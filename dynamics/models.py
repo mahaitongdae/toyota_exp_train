@@ -71,18 +71,37 @@ class EmBrakeModel(object):
         self.actions = None
         self.reward_info = None
 
-class UpperTriangleModel(DynamicsModel):
+
+class UpperTriangleModel(object):
     def __init__(self):
-        super().__init__()
-        self.action_range = 1
+        self.constraints_num = 2
+
+    def rollout_out(self, actions):
+        with tf.name_scope('model_step') as scope:
+            self.actions = self._action_transformation_for_end2end(actions)
+            rewards, constraints = self.compute_rewards(self.obses, self.actions)
+            self.obses = self.f_xu(self.obses, self.actions)
+
+            return self.obses, rewards, constraints
 
     def compute_rewards(self, obses, actions):
-        rewards = -0.04 * ( tf.square(obses[:, 0]) + tf.square(obses[:, 1]) + 10 * tf.square(actions[:, 0]))
-        constraints = tf.stack([tf.abs(obses[:, 0]) - 5., tf.abs(obses[:, 1] - 5.)], axis=1)
+        obses = tf.cast(obses, dtype=tf.float32)
+        actions = tf.cast(actions, dtype=tf.float32)
+        rewards = -0.04 * (10 * tf.square(actions[:, 0]))
+        constraints = tf.stack([obses[:, 0] - 5., obses[:, 1] - 5., - obses[:, 0] - 5., - obses[:, 1] - 5.], axis=1)
+        # constraints = tf.zeros_like(obses)
         return rewards, constraints
 
-    def f_xu(self, x, u, frequency=10.0):
-        next_state = [x[:, 0] + x[:, 1], x[:, 1] + u[:, 0]]
+    def _action_transformation_for_end2end(self, actions):
+        clipped_actions = tf.clip_by_value(actions, -1.05, 1.05)
+        acc = 0.5 * clipped_actions
+        return acc
+
+    def f_xu(self, x, u, frequency=1.0):
+        d, v = tf.cast(x[:, 0], dtype=tf.float32), tf.cast(x[:, 1], dtype=tf.float32)
+        a = tf.cast(u[:, 0], dtype=tf.float32)
+        frequency = tf.convert_to_tensor(frequency)
+        next_state = [d + 1 / frequency * v, v + 1 / frequency * a]
         return tf.stack(next_state, 1)
 
     def reset(self, obses):  # input are all tensors
@@ -163,7 +182,12 @@ def try_pendulum_model():
     model.reset(np.array([[0.,1.],[0.,1.],[0.,1.]]))
     model.rollout_out([[0.,0.,0.]])
 
+def try_up_model():
+    model = UpperTriangleModel()
+    model.reset(np.array([[0.,1.],[0.,1.],[0.,1.]]))
+    model.rollout_out([[0.],[0.],[0.]])
+
 
 if __name__ == '__main__':
-    try_pendulum_model()
+    try_up_model()
 

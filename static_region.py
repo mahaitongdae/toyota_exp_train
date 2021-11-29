@@ -5,15 +5,13 @@ import gym
 from utils.em_brake_4test import EmergencyBraking
 import numpy as np
 from matplotlib.colors import ListedColormap
-from gym.envs.user_defined.EmerBrake.models import EmBrakeModel
+from dynamics.models import EmBrakeModel, UpperTriangleModel
 
 def static_region(test_dir, iteration):
     import json
     import argparse
     import datetime
-    from train_script import built_LMAMPC_parser
     from policy import Policy4Lagrange
-    # args = built_LMAMPC_parser()
     params = json.loads(open(test_dir + '/config.json').read())
     time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     test_log_dir = params['log_dir'] + '/tester/test-region-{}'.format(time_now)
@@ -29,10 +27,11 @@ def static_region(test_dir, iteration):
     model = EmBrakeModel()
 
     # generate batch obses
-    d = np.linspace(0, 10, 100)
-    v = np.linspace(0, 10, 100)
-    # cmaplist = ['springgreen'] * 3 + ['crimson'] * 87
-    # cmap1 = ListedColormap(cmaplist)
+    d = np.linspace(0, 4, 100)
+    v = np.linspace(0, 6, 100)
+    tor = 2
+    cmaplist = ['springgreen'] * tor + ['crimson'] * (100 - tor)
+    cmap1 = ListedColormap(cmaplist)
     D, V = np.meshgrid(d, v)
     flatten_d = np.reshape(D, [-1, ])
     flatten_v = np.reshape(V, [-1, ])
@@ -46,30 +45,34 @@ def static_region(test_dir, iteration):
             processed_obses = evaluator.preprocessor.tf_process_obses(obses)
             actions, _ = evaluator.policy_with_value.compute_action(processed_obses)
             obses, rewards, constraints = model.rollout_out(actions)
-            constraints_list.append(constraints)
-        flattern_cstr = evaluator.tf.stack(constraints_list, 1).numpy()
+            constraints = evaluator.tf.expand_dims(constraints, 1) if len(constraints.shape) == 1 else constraints
+            constraints_list.append(evaluator.tf.cast(constraints, dtype=evaluator.tf.float32))
+        flattern_cstr = evaluator.tf.concat(constraints_list, 1).numpy()
         return flattern_cstr
     flatten_cstr = reduced_model_rollout_for_update(init_obses)
 
     preprocess_obs = evaluator.preprocessor.np_process_obses(init_obses)
     flatten_mu = evaluator.policy_with_value.compute_mu(preprocess_obs).numpy()
-    flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
+    # flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
 
     flatten_cs = np.multiply(flatten_cstr, flatten_mu)
+    flatten_cs = flatten_cs / np.max(flatten_cs)
 
     def plot_region(data, name):
-        for k in [19]:
+        for k in [args.num_rollout_list_for_policy_update[0] - 1]:
             data_k = data[:, k]
             data_reshape = data_k.reshape(D.shape)
             import matplotlib.pyplot as plt
             from mpl_toolkits.mplot3d import Axes3D
             fig, ax = plt.subplots()
             # plt.grid()
-            x = np.linspace(0, 10)
+            x = np.linspace(0, 4)
             t = np.sqrt(2 * 5 * x)
-            ct = ax.contour(D, V, data_reshape, 50, cmap='rainbow')
-            plt.colorbar(ct)
-            ax.clabel(ct, inline=True, fontsize=10)
+            # ct = ax.contourf(D, V, data_reshape, 50, cmap=cmap1)
+            ct = ax.contour(D, V, data_reshape, 50, levels=0, colors='red', linnwidth=2)
+            # plt.colorbar(ct)
+            ct.allsegs[1] = ct.allsegs[1][:1]
+            # ax.clabel(ct, fontsize=10)
             plt.plot(x, t, linestyle='--', color='red')
             name_2d = name + '_' + str(k) + '_2d.jpg'
             plt.savefig(os.path.join(evaluator.log_dir, name_2d))
@@ -86,4 +89,4 @@ def static_region(test_dir, iteration):
 
 
 if __name__ == '__main__':
-    static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
+    static_region('./results/EmBrk/LMAMPC-v2-2021-11-21-19-24-06', 200000)
