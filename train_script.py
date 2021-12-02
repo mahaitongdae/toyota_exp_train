@@ -18,7 +18,7 @@ import ray
 
 from buffer import ReplayBuffer
 from evaluator import Evaluator
-from learners.ampc_lag import LMAMPCLearner2
+from learners.ampc_lag_terminal import LMAMPCLearnerTerminal
 from learners.ampc_baseline import LMAMPCLearner2 as LMBaseline
 from optimizer import OffPolicyAsyncOptimizer, SingleProcessOffPolicyOptimizer
 from policy import Policy4Toyota, Policy4Lagrange, Policy4baseline
@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 NAME2WORKERCLS = dict([('OffPolicyWorker', OffPolicyWorker)])
-NAME2LEARNERCLS = dict([('LMAMPC-v2', LMAMPCLearner2),('LMbaseline', LMBaseline)])
+NAME2LEARNERCLS = dict([('LMAMPC-v2', LMAMPCLearnerTerminal), ('LMbaseline', LMBaseline)])
 NAME2BUFFERCLS = dict([('normal', ReplayBuffer), ('None', None)])
 NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
                           ('SingleProcessOffPolicy', SingleProcessOffPolicyOptimizer)])

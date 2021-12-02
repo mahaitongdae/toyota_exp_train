@@ -20,10 +20,10 @@ from utils.misc import TimerStat, args2envkwargs
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-CONSTRAINTS_CLIP_MINUS = -100
+CONSTRAINTS_CLIP_MINUS = -1.0
 
 
-class LMAMPCLearner2(object):
+class LMAMPCLearnerTerminal(object):
     import tensorflow as tf
     tf.config.optimizer.set_experimental_options({'constant_folding': True,
                                                   'arithmetic_optimization': True,
@@ -43,8 +43,12 @@ class LMAMPCLearner2(object):
         self.M = self.args.M
         self.num_rollout_list_for_policy_update = self.args.num_rollout_list_for_policy_update
 
-        # self.model = EmBrakeModel()
-        self.model = UpperTriangleModel()
+        brake_model = EmBrakeModel()
+        double_intergrator_model = UpperTriangleModel()
+        air3d_model = Air3dModel()
+        model_dict = {"UpperTriangle": double_intergrator_model,
+                      "Air3d": air3d_model}
+        self.model = model_dict.get(args.env_id.split("-")[0])
         self.preprocessor = Preprocessor((self.args.obs_dim, ), self.args.obs_preprocess_type, self.args.reward_preprocess_type,
                                          self.args.obs_scale, self.args.reward_scale, self.args.reward_shift,
                                          gamma=self.args.gamma)
@@ -109,7 +113,7 @@ class LMAMPCLearner2(object):
 
         return obj_loss, punish_terms, cs_loss, pg_loss, constraints, terminal_mu
 
-    # @tf.function
+    @tf.function
     def forward_and_backward(self, mb_obs, ite):
         with self.tf.GradientTape(persistent=True) as tape:
             obj_loss, punish_terms, cs_loss, pg_loss, constraints, terminal_mu = self.model_rollout_for_update(mb_obs, ite)

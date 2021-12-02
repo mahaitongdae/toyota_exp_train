@@ -12,16 +12,18 @@ def hj_baseline():
     import jax.numpy as jnp
     import hj_reachability as hj
     # from hj_reachability.systems import DetAir3d
-    dynamics = hj.systems.DoubleInt()
+    dynamics = hj.systems.DetAir3d()
 
-    grid = hj.Grid.from_grid_definition_and_initial_values(hj.sets.Box(lo=np.array([-5., -5.]),
-                                                                       hi=np.array([5., 5.])), (50, 50))
-    values = - jnp.linalg.norm(grid.states, axis=-1, ord=jnp.inf) + 5
+    grid = hj.Grid.from_grid_definition_and_initial_values(hj.sets.Box(lo=np.array([-6., -10., 0.]),
+                                                                       hi=np.array([20., 10., 2 * np.pi])),
+                                                           (51, 40, 60),
+                                                           periodic_dims=2)
+    values = jnp.linalg.norm(grid.states[..., :2], axis=-1) - 5
 
     solver_settings = hj.SolverSettings.with_accuracy("very_high",
                                                       hamiltonian_postprocessor=hj.solver.backwards_reachable_tube)
     time = 0.
-    target_time = -5.0
+    target_time = -1.0
     target_values = hj.step(solver_settings, dynamics, grid, time, values, target_time).block_until_ready()
     return grid, target_values
 
@@ -55,17 +57,19 @@ def static_region(test_dir, iteration,
 
 
     # generate batch obses
-    d = np.linspace(bound[0], bound[1], 400)
-    v = np.linspace(bound[2], bound[3], 400)
+    d = np.linspace(bound[0], bound[1], 500)
+    v = np.linspace(bound[2], bound[3], 500)
     # cmaplist = ['springgreen'] * 3 + ['crimson'] * 87
     # cmap1 = ListedColormap(cmaplist)
-    D, V = np.meshgrid(d, v)
+    Dc, Vc = np.meshgrid(d, v)
+    t = np.array([np.pi * 2 / 3, np.pi, np.pi * 4 / 3 ])
+    D, V, T = np.meshgrid(d, v, t)
     flatten_d = np.reshape(D, [-1, ])
     flatten_v = np.reshape(V, [-1, ])
+    flatten_t = np.reshape(T, [-1, ])
     env_name = args.env_id.split("-")[0]
     if env_name == 'Air3d':
-        x3 = np.pi * np.ones_like(flatten_d)
-        init_obses = np.stack([flatten_d, flatten_v, x3], 1)
+        init_obses = np.stack([flatten_d, flatten_v, flatten_t], 1)
     else:
         init_obses = np.stack([flatten_d, flatten_v], 1)
 
@@ -93,7 +97,7 @@ def static_region(test_dir, iteration,
         con_dim = -args.con_dim
         flatten_cstr = flatten_cstr[:, con_dim:]
         flatten_cs = np.multiply(flatten_cstr, flatten_mu)
-    flatten_cs = flatten_cs / np.max(flatten_cs)
+    # flatten_cs = flatten_cs / np.max(flatten_cs)
 
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
@@ -103,50 +107,48 @@ def static_region(test_dir, iteration,
     if baseline:
         grid, target_values = hj_baseline()
 
-    def plot_region(data_reshape, name):
+    def plot_region(data_reshape, name, k):
         fig, ax = plt.subplots()
-        ct = ax.contourf(D, V, data_reshape, cmap='rainbow')  # 50
-        plt.colorbar(ct)
-        ax.contour(D, V, data_reshape, levels=0,
+        data_reshape = data_reshape / np.max(data_reshape)
+        ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
+        plt.colorbar(ctf)
+        plt.axis('equal')
+        ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="black",
                    linewidths=3)
+        ct1.collections[0].set_label('Learned Boundary')
+        x = np.linspace(0, np.pi * 2, 100)
+        ax.plot(5 * np.sin(x), 5 * np.cos(x), linewidth=2, linestyle='--', label='Safe dist', color='red')
         if baseline:
-            ax.contour(grid.coordinate_vectors[0],
+            ct2 = ax.contour(grid.coordinate_vectors[0],
                        grid.coordinate_vectors[1],
-                       target_values.T,
+                       target_values[:, :, int(10 * (k + 2))].T,
                        levels=0,
                        colors="red",
                        linewidths=3)
-        name_2d = name + '_' + str(iteration) + '_2d.jpg'
+            ct2.collections[0].set_label('Numerical Boundary')
+        plt.legend(loc='best')
+        name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
+        plt.title(r'Feasibility Indicator $F(s)$, $x_3={:.0f}\degree$'.format(30 * (k+2)))
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
-        # figure = plt.figure()
-        # ax = Axes3D(figure)
-        # ax.plot_surface(D, V, data_reshape, rstride=1, cstride=1, cmap='rainbow')
-        # name_3d = name + '_' + str(iteration) + '_3d.jpg'
-        # plt.savefig(os.path.join(evaluator.log_dir, name_3d))
-
 
     for plot_item in plot_items:
         data = data_dict.get(plot_item)
-        # for k in range(data.shape[1]):
-        #     data_k = data[:, k]
-        #     data_reshape = data_k.reshape(D.shape)
-        #     plot_region(data_reshape, plot_item + '_' + str(k))
-
         if sum:
             data_k = np.sum(data, axis=1)
             data_reshape = data_k.reshape(D.shape)
-            plot_region(data_reshape, plot_item + '_sum')
+            for k in range(data_reshape.shape[-1]):
+                plot_region(data_reshape[..., k], plot_item + '_sum', k)
 
 
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    # static_region('./results/Air3d/LMAMPC-vector-2021-12-02-01-41-12', 300000,
-    #               bound=(-6., 20., -10., 10.),
-    #               baseline=True) #
+    static_region('./results/Air3d/LMAMPC-vector-2021-11-29-19-48-32', 300000,
+                  bound=(-6., 20., -13., 13.),
+                  baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
-    static_region('./results/uppep_triangle/LMAMPC-terminal-2021-12-02-23-07-17', 300000,
-                  bound=(-5., 5., -5., 5.),
-                  vector=False,
-                  baseline=True)  #
+    # static_region('./results/uppep_triangle/LMAMPC-terminal-2021-11-30-12-40-50', 300000,
+    #               bound=(-5., 5., -5., 5.),
+    #               vector=False,
+    #               baseline=False)  #

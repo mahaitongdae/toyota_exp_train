@@ -74,7 +74,7 @@ class EmBrakeModel(object):
 
 class UpperTriangleModel(object):
     def __init__(self):
-        self.constraints_num = 2
+        self.constraints_num = 1
 
     def rollout_out(self, actions):
         with tf.name_scope('model_step') as scope:
@@ -87,8 +87,8 @@ class UpperTriangleModel(object):
     def compute_rewards(self, obses, actions):
         obses = tf.cast(obses, dtype=tf.float32)
         actions = tf.cast(actions, dtype=tf.float32)
-        rewards = -0.04 * (10 * tf.square(actions[:, 0]))
-        constraints = tf.stack([obses[:, 0] - 5., obses[:, 1] - 5., - obses[:, 0] - 5., - obses[:, 1] - 5.], axis=1)
+        rewards = - tf.square(actions[:, 0])
+        constraints = tf.stack([tf.reduce_max(tf.abs(obses), axis=1) - 5.], axis=1)
         # constraints = tf.zeros_like(obses)
         return rewards, constraints
 
@@ -97,7 +97,7 @@ class UpperTriangleModel(object):
         acc = 0.5 * clipped_actions
         return acc
 
-    def f_xu(self, x, u, frequency=1.0):
+    def f_xu(self, x, u, frequency=5.0):
         d, v = tf.cast(x[:, 0], dtype=tf.float32), tf.cast(x[:, 1], dtype=tf.float32)
         a = tf.cast(u[:, 0], dtype=tf.float32)
         frequency = tf.convert_to_tensor(frequency)

@@ -94,7 +94,6 @@ def env():
         env.render()
         time.sleep(0.5)
         if done: env.reset()
-        print(reward)
 
 if __name__ == '__main__':
     env()

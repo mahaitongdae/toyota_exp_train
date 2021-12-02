@@ -19,7 +19,8 @@ import numpy as np
 
 from buffer import ReplayBuffer
 from evaluator import Evaluator
-from learners.ampc_lag import LMAMPCLearner2
+from learners.ampc_lag_terminal import LMAMPCLearnerTerminal
+from learners.ampc_lag_vector import LMAMPCLearner2 as LMAMPCLearnerVector
 from learners.ampc_baseline import LMAMPCLearner2 as LMBaseline
 from optimizer import OffPolicyAsyncOptimizer, SingleProcessOffPolicyOptimizer
 from policy import Policy4Toyota, Policy4Lagrange, Policy4baseline
@@ -34,7 +35,9 @@ logging.basicConfig(level=logging.INFO)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 NAME2WORKERCLS = dict([('OffPolicyWorker', OffPolicyWorker)])
-NAME2LEARNERCLS = dict([('LMAMPC-v2', LMAMPCLearner2),('LMbaseline', LMBaseline)])
+NAME2LEARNERCLS = dict([('LMAMPC-terminal', LMAMPCLearnerTerminal),
+                        ('LMAMPC-vector', LMAMPCLearnerVector),
+                        ('LMbaseline', LMBaseline)])
 NAME2BUFFERCLS = dict([('normal', ReplayBuffer), ('None', None)])
 NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
                           ('SingleProcessOffPolicy', SingleProcessOffPolicyOptimizer)])
@@ -82,12 +85,12 @@ def built_LMAMPC_parser():
     parser.add_argument('--env_kwargs_training_task', type=str, default='left')
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
-    parser.add_argument('--con_dim', type=int, default=4)
+    parser.add_argument('--con_dim', type=int, default=1)
 
     # learner
-    parser.add_argument('--alg_name', default='LMAMPC-v2')
+    parser.add_argument('--alg_name', default='LMAMPC-terminal')
     parser.add_argument('--M', type=int, default=1)
-    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[3])
+    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[25])
     parser.add_argument('--gamma', type=float, default=1.)
     parser.add_argument('--gradient_clip_norm', type=float, default=10)
     parser.add_argument('--init_punish_factor', type=float, default=10.)

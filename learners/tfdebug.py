@@ -3,7 +3,7 @@ from learners.ampc import AMPCLearner
 from policy import Policy4Lagrange
 import gym
 from train_script import built_LMAMPC_parser
-from learners.ampc_lag import LMAMPCLearner
+from learners.ampc_lag_terminal import LMAMPCLearner
 from buffer import ReplayBuffer
 from optimizer import OffPolicyAsyncOptimizer
 from tester import Tester
