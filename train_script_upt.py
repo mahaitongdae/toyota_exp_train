@@ -90,7 +90,7 @@ def built_LMAMPC_parser():
     # learner
     parser.add_argument('--alg_name', default='LMAMPC-terminal')
     parser.add_argument('--M', type=int, default=1)
-    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[25])
+    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[50])
     parser.add_argument('--gamma', type=float, default=1.)
     parser.add_argument('--gradient_clip_norm', type=float, default=10)
     parser.add_argument('--init_punish_factor', type=float, default=10.)

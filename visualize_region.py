@@ -105,19 +105,25 @@ def static_region(test_dir, iteration,
 
     def plot_region(data_reshape, name):
         fig, ax = plt.subplots()
-        ct = ax.contourf(D, V, data_reshape, cmap='rainbow')  # 50
-        plt.colorbar(ct)
+        data_reshape += 0.15 * np.where(data_reshape == 0,
+                                        np.zeros_like(data_reshape),
+                                        np.ones_like(data_reshape))
+        ct1 = ax.contourf(D, V, data_reshape, cmap='Accent')  # 50
+        plt.colorbar(ct1)
+        ct1.collections[0].set_label('Learned Boundary')
         ax.contour(D, V, data_reshape, levels=0,
                    colors="black",
                    linewidths=3)
         if baseline:
-            ax.contour(grid.coordinate_vectors[0],
+            ct2 = ax.contour(grid.coordinate_vectors[0],
                        grid.coordinate_vectors[1],
                        target_values.T,
                        levels=0,
                        colors="red",
                        linewidths=3)
+            ct2.collections[0].set_label('HJ-Reachability Boundary')
         name_2d = name + '_' + str(iteration) + '_2d.jpg'
+        plt.title('Feasible Region of Double Integrator')
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
         # figure = plt.figure()
         # ax = Axes3D(figure)

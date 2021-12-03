@@ -108,8 +108,11 @@ def static_region(test_dir, iteration,
         grid, target_values = hj_baseline()
 
     def plot_region(data_reshape, name, k):
-        fig, ax = plt.subplots()
+        ax = plt.subplot(1, 3, k+1)
         data_reshape = data_reshape / np.max(data_reshape)
+        data_reshape += 0.15 * np.where(data_reshape==0,
+                                        np.zeros_like(data_reshape),
+                                        np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
         plt.colorbar(ctf)
         plt.axis('equal')
@@ -126,12 +129,13 @@ def static_region(test_dir, iteration,
                        levels=0,
                        colors="red",
                        linewidths=3)
-            ct2.collections[0].set_label('Numerical Boundary')
+            ct2.collections[0].set_label('HJ-Reachability Boundary')
         plt.legend(loc='best')
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
-        plt.title(r'Feasibility Indicator $F(s)$, $x_3={:.0f}\degree$'.format(30 * (k+2)))
+        plt.title(r'$x_3={:.0f}\degree$'.format(30 * (k+2))) #Feasibility Indicator $F(s)$,
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
 
+    plt.figure(figsize=(12, 3))
     for plot_item in plot_items:
         data = data_dict.get(plot_item)
         if sum:
