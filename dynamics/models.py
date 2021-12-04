@@ -194,6 +194,7 @@ class Air3dModelSis(Air3dModel):
         super(Air3dModel, self).__init__()
         self.sis_paras = None
         self.sis_info = dict()
+        self.obstacle_radius = 5.
 
     def set_sis_paras(self, sis_paras):
         self.sis_paras = sis_paras
@@ -218,24 +219,22 @@ class Air3dModelSis(Air3dModel):
         '''
         if self.sis_paras is not None:
             sigma, k, n = self.sis_paras
-        phi = -1e8
         sis_info_t = self.sis_info.get('sis_data', [])
         sis_info_tp1 = []
 
         rela_pos = x[:, :2]
-        d = tf.norm(rela_pos)
-        robot_to_hazard_angle = tf.atan((-rela_pos[:, 1])/(-rela_pos[:, 0] + 1e-8))
+        d = tf.norm(rela_pos, axis=1)
+        robot_to_hazard_angle = tf.atan((rela_pos[:, 1])/(rela_pos[:, 0] + 1e-8)) \
+                                + tf.where(rela_pos[:, 0]<=0, np.pi*tf.ones_like(d), tf.zeros_like(d))
         vel_rela_angle = x[:, -1] - robot_to_hazard_angle
-        dotd = self.state[2] * np.cos(vel_rela_angle)
+        dotd = self.pursuer_spd * tf.cos(vel_rela_angle) - self.evader_spd + tf.cos(vel_rela_angle)
 
         # if dotd <0, then we are getting closer to hazard
         sis_info_tp1.append((d, dotd))
 
         # compute the safety index
-        phi_tmp = (sigma + self.obstacle_radius) ** n - d ** n - k * dotd
+        phi = (sigma + self.obstacle_radius) ** n - d ** n - k * dotd
         # select the largest safety index
-        if phi_tmp > phi:
-            phi = phi_tmp
 
         # sis_info is a list consisting of tuples, len is num of obstacles
         self.sis_info.update(dict(sis_data=sis_info_tp1, sis_trans=(sis_info_t, sis_info_tp1)))
