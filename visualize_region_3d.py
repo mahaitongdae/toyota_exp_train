@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from policy import Policy4Lagrange
 import os
 from evaluator import Evaluator
@@ -6,6 +8,7 @@ from utils.em_brake_4test import EmergencyBraking
 import numpy as np
 from matplotlib.colors import ListedColormap
 from dynamics.models import EmBrakeModel, UpperTriangleModel, Air3dModel
+plt.rcParams.update({'font.size': 14})
 
 def hj_baseline():
     import jax
@@ -107,19 +110,18 @@ def static_region(test_dir, iteration,
     if baseline:
         grid, target_values = hj_baseline()
 
-    def plot_region(data_reshape, name, k):
+    def plot_region(data_reshape, name, k, fig):
         ax = plt.subplot(1, 3, k+1)
         data_reshape = data_reshape / np.max(data_reshape)
         data_reshape += 0.15 * np.where(data_reshape==0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
-        plt.colorbar(ctf)
-        plt.axis('equal')
+        # plt.axis('equal')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
-                   colors="black",
+                   colors="green",
                    linewidths=3)
-        ct1.collections[0].set_label('Learned Boundary')
+        # ct1.collections[0].set_label('Learned')
         x = np.linspace(0, np.pi * 2, 100)
         ax.plot(5 * np.sin(x), 5 * np.cos(x), linewidth=2, linestyle='--', label='Safe dist', color='red')
         if baseline:
@@ -127,22 +129,49 @@ def static_region(test_dir, iteration,
                        grid.coordinate_vectors[1],
                        target_values[:, :, int(10 * (k + 2))].T,
                        levels=0,
-                       colors="red",
-                       linewidths=3)
-            ct2.collections[0].set_label('HJ-Reachability Boundary')
-        plt.legend(loc='best')
+                       colors="grey",
+                       linewidths=3,
+                       linestyle='--')
+            # ct2.collections[0].set_label('HJ avoid set')
+        ax.set_title(r'$x_3={:.0f}\degree$'.format(30 * (k + 2)))  # Feasibility Indicator $F(s)$,
+        # ax.set_xlabel(r'$x_1$')
+        # ax.set_ylabel(r'$x_2$')
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
-        plt.title(r'$x_3={:.0f}\degree$'.format(30 * (k+2))) #Feasibility Indicator $F(s)$,
-        plt.savefig(os.path.join(evaluator.log_dir, name_2d))
+        if k == 2:
+            rect1 = plt.Rectangle((0,0), 1, 1, fc=ctf.collections[0].get_facecolor()[0], ec='green', linewidth=3)
+            rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
+            plt.colorbar(ctf)
+            h, l = ax.get_legend_handles_labels()
+            h = h + [rect1,rect2]
+            l = l + ['Feasible region', 'HJ avoid set']
+            fig.legend(h, l, loc='upper right')
+            # plt.tight_layout(pad=0.5)
+            plt.savefig(os.path.join(evaluator.log_dir, name_2d))
+            # legfig, legax = plt.subplots(figsize=(7,0.75))
+            # legax.set_facecolor('white')
+            # leg = legax.legend(h, l, loc='center', ncol=3, handlelength=1.5,
+            #            mode="expand", borderaxespad=0., prop={'size': 13})
+            # legax.xaxis.set_visible(False)
+            # legax.yaxis.set_visible(False)
+            # for line in leg.get_lines():
+            #     line.set_linewidth(4.0)
+            # plt.tight_layout(pad=0.5)
+            # plt.savefig(os.path.join(evaluator.log_dir, 'legend.pdf'), format='pdf')
+            # plt.subplots(figsize=(2, 8))
+            #
+            # plt.savefig(os.path.join(evaluator.log_dir, 'color_bar.pdf'), format='pdf')
 
-    plt.figure(figsize=(12, 3))
+
+
+
+    fig = plt.figure(figsize=(12, 3))
     for plot_item in plot_items:
         data = data_dict.get(plot_item)
         if sum:
             data_k = np.sum(data, axis=1)
             data_reshape = data_k.reshape(D.shape)
             for k in range(data_reshape.shape[-1]):
-                plot_region(data_reshape[..., k], plot_item + '_sum', k)
+                plot_region(data_reshape[..., k], plot_item + '_sum', k, fig)
 
 
 

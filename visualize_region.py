@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 from dynamics.models import EmBrakeModel, UpperTriangleModel, Air3dModel
 
+
 def hj_baseline():
     import jax
     import jax.numpy as jnp
@@ -96,6 +97,7 @@ def static_region(test_dir, iteration,
     flatten_cs = flatten_cs / np.max(flatten_cs)
 
     import matplotlib.pyplot as plt
+    plt.rcParams.update({'font.size': 16})
     from mpl_toolkits.mplot3d import Axes3D
 
     plot_items = ['cs']
@@ -112,18 +114,24 @@ def static_region(test_dir, iteration,
         plt.colorbar(ct1)
         ct1.collections[0].set_label('Learned Boundary')
         ax.contour(D, V, data_reshape, levels=0,
-                   colors="black",
+                   colors="green",
                    linewidths=3)
         if baseline:
             ct2 = ax.contour(grid.coordinate_vectors[0],
                        grid.coordinate_vectors[1],
                        target_values.T,
                        levels=0,
-                       colors="red",
+                       colors="grey",
                        linewidths=3)
-            ct2.collections[0].set_label('HJ-Reachability Boundary')
+            # ct2.collections[0].set_label('HJ-Reachability Boundary')
         name_2d = name + '_' + str(iteration) + '_2d.jpg'
-        plt.title('Feasible Region of Double Integrator')
+        ax.set_xlabel(r'$x_1$')
+        ax.set_ylabel(r'$x_2$')
+        rect1 = plt.Rectangle((0, 0), 1, 1, fc=ct1.collections[0].get_facecolor()[0], ec='green', linewidth=3)
+        rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
+        plt.legend((rect1,rect2), ('Feasible region', 'HJ avoid set'), loc='best')
+        # plt.title('Feasible Region of Double Integrator')
+        plt.tight_layout(pad=0.5)
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
         # figure = plt.figure()
         # ax = Axes3D(figure)
