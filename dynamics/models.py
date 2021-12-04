@@ -189,6 +189,58 @@ class Air3dModel(DynamicsModel):
         constraints = tf.stack([25. - d], axis=1)
         return rewards, constraints
 
+class Air3dModelSis(Air3dModel):
+    def __init__(self):
+        super(Air3dModel, self).__init__()
+        self.sis_paras = None
+        self.sis_info = dict()
+
+    def set_sis_paras(self, sis_paras):
+        self.sis_paras = sis_paras
+
+    def adaptive_safety_index(self, x, sigma=0.04, k=2, n=2):
+        '''
+        synthesis the safety index that ensures the valid solution
+        '''
+        # initialize safety index
+
+        '''
+        function phi(index::CollisionIndex, x, obs)
+            o = [obs.center; [0,0]]
+            d = sqrt((x[1]-o[1])^2 + (x[2]-o[2])^2)
+            dM = [x[1]-o[1], x[2]-o[2], x[3]*cos(x[4])-o[3], x[3]*sin(x[4])-o[4]]
+            dim = 2
+            dp = dM[[1,dim]]
+            dv = dM[[dim+1,dim*2]]
+            dot_d = dp'dv / d
+            return (index.margin + obs.radius)^index.phi_power - d^index.phi_power - index.dot_phi_coe*dot_d
+        end
+        '''
+        if self.sis_paras is not None:
+            sigma, k, n = self.sis_paras
+        phi = -1e8
+        sis_info_t = self.sis_info.get('sis_data', [])
+        sis_info_tp1 = []
+
+        rela_pos = x[:, :2]
+        d = tf.norm(rela_pos)
+        robot_to_hazard_angle = tf.atan((-rela_pos[:, 1])/(-rela_pos[:, 0] + 1e-8))
+        vel_rela_angle = x[:, -1] - robot_to_hazard_angle
+        dotd = self.state[2] * np.cos(vel_rela_angle)
+
+        # if dotd <0, then we are getting closer to hazard
+        sis_info_tp1.append((d, dotd))
+
+        # compute the safety index
+        phi_tmp = (sigma + self.obstacle_radius) ** n - d ** n - k * dotd
+        # select the largest safety index
+        if phi_tmp > phi:
+            phi = phi_tmp
+
+        # sis_info is a list consisting of tuples, len is num of obstacles
+        self.sis_info.update(dict(sis_data=sis_info_tp1, sis_trans=(sis_info_t, sis_info_tp1)))
+        return phi
+
 
 def try_pendulum_env():
     import gym
