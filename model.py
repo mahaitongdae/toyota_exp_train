@@ -54,6 +54,12 @@ class LamModel(Model):
         super(LamModel, self).__init__(name=kwargs['name'])
         self.var = tf.Variable(0 * tf.ones([10,]), dtype=tf.float32)
 
+class SiSParaModel(Model):
+    def __init__(self, **kwargs):
+        super(SiSParaModel, self).__init__(name=kwargs['name'])
+        init_var = kwargs.get('init_var', [0.1, 1.0, 2.0])
+        self.var = tf.Variable(init_var, dtype=tf.float32)
+
 
 def test_attrib():
     a = Variable(0, name='d')

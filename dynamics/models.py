@@ -196,8 +196,28 @@ class Air3dModelSis(Air3dModel):
         self.sis_info = dict()
         self.obstacle_radius = 5.
 
+    def reset(self, obses):  # input are all tensors
+        super(Air3dModelSis, self).reset(obses)
+        self.phi = self.adaptive_safety_index(self.obses)
+
+    def rollout_out(self, actions):
+        with tf.name_scope('model_step') as scope:
+            self.actions = self._action_transformation_for_end2end(actions)
+            rewards, constraints = self.compute_rewards(self.obses, self.actions)
+            old_phi = self.phi
+            self.obses = self.f_xu(self.obses, self.actions)
+            self.phi = self.adaptive_safety_index(self.obses)
+            constraints = self.phi - tf.stop_gradient(old_phi)
+            vios = tf.where(constraints>0, constraints, tf.zeros_like(constraints))
+            return self.obses, rewards, constraints, vios
+
     def set_sis_paras(self, sis_paras):
         self.sis_paras = sis_paras
+
+    def compute_rewards(self, obses, actions):
+        actions = tf.cast(actions, dtype=tf.float32)
+        rewards = - tf.square(actions[:, 0])
+        return rewards
 
     def adaptive_safety_index(self, x, sigma=0.04, k=2, n=2):
         '''
@@ -218,7 +238,7 @@ class Air3dModelSis(Air3dModel):
         end
         '''
         if self.sis_paras is not None:
-            sigma, k, n = self.sis_paras
+            sigma, k, n = self.sis_paras[0], self.sis_paras[1], self.sis_paras[2]
         sis_info_t = self.sis_info.get('sis_data', [])
         sis_info_tp1 = []
 
@@ -234,7 +254,6 @@ class Air3dModelSis(Air3dModel):
 
         # compute the safety index
         phi = (sigma + self.obstacle_radius) ** n - d ** n - k * dotd
-        # select the largest safety index
 
         # sis_info is a list consisting of tuples, len is num of obstacles
         self.sis_info.update(dict(sis_data=sis_info_tp1, sis_trans=(sis_info_t, sis_info_tp1)))
