@@ -17,9 +17,9 @@ def hj_baseline():
     # from hj_reachability.systems import DetAir3d
     dynamics = hj.systems.DetAir3d()
 
-    grid = hj.Grid.from_grid_definition_and_initial_values(hj.sets.Box(lo=np.array([-6., -10., 0.]),
-                                                                       hi=np.array([20., 10., 2 * np.pi])),
-                                                           (51, 40, 60),
+    grid = hj.Grid.from_grid_definition_and_initial_values(hj.sets.Box(lo=np.array([-6., -13., 0.]),
+                                                                       hi=np.array([20., 13., 2 * np.pi])),
+                                                           (51, 50, 60),
                                                            periodic_dims=2)
     values = jnp.linalg.norm(grid.states[..., :2], axis=-1) - 5
 
@@ -117,7 +117,7 @@ def static_region(test_dir, iteration,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
-        # plt.axis('equal')
+        plt.axis('equal')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
                    linewidths=3)
