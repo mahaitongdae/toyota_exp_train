@@ -92,7 +92,7 @@ def static_region(test_dir, iteration,
     # flatten_mu = evaluator.policy_with_value.compute_mu(preprocess_obs).numpy()
     # flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
 
-    flatten_phi = model.adaptive_safety_index(init_obses)
+    flatten_phi = model.adaptive_safety_index(init_obses, sigma=0.4,).numpy()
 
     # if vector:
     #     flatten_cs = np.multiply(flatten_cstr, flatten_mu)
@@ -143,7 +143,7 @@ def static_region(test_dir, iteration,
             h, l = ax.get_legend_handles_labels()
             h = h + [rect1,rect2]
             l = l + ['Feasible region', 'HJ avoid set']
-            fig.legend(h, l, loc='upper right')
+            # fig.legend(h, l, loc='upper right')
             # plt.tight_layout(pad=0.5)
             plt.savefig(os.path.join(evaluator.log_dir, name_2d))
             # legfig, legax = plt.subplots(figsize=(7,0.75))
@@ -176,7 +176,7 @@ def static_region(test_dir, iteration,
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    static_region('./results/Air3d/LMAMPC-vector-2021-11-29-19-48-32', 300000,
+    static_region('./results/Air3d/LMAMPC-vector-2021-12-02-01-41-12', 300000,
                   bound=(-6., 20., -13., 13.),
                   baseline=False) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40

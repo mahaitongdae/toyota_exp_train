@@ -191,7 +191,7 @@ class Air3dModel(DynamicsModel):
 
 class Air3dModelSis(Air3dModel):
     def __init__(self):
-        super(Air3dModel, self).__init__()
+        super(Air3dModelSis, self).__init__()
         self.sis_paras = None
         self.sis_info = dict()
         self.obstacle_radius = 5.
