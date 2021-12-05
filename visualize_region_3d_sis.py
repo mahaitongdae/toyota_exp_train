@@ -121,6 +121,7 @@ def static_region(test_dir, iteration,
                                         np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, 50, cmap='rainbow')  #
         plt.axis('equal')
+        plt.axis('off')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
                    linewidths=3)
@@ -137,8 +138,9 @@ def static_region(test_dir, iteration,
                        linestyle='--')
             # ct2.collections[0].set_label('HJ avoid set')
         ax.set_title(r'$\theta={:.0f}\degree$'.format(90 * (k + 1)))  # Feasibility Indicator $F(s)$,
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
         if k == 2:
             rect0 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='red', linewidth=3, linestyle='--')

@@ -118,6 +118,7 @@ def static_region(test_dir, iteration,
                                         np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
         plt.axis('equal')
+        plt.axis('off')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
                    linewidths=3)
