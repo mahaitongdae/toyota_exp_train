@@ -67,6 +67,7 @@ def static_region(test_dir, iteration,
     # cmap1 = ListedColormap(cmaplist)
     Dc, Vc = np.meshgrid(d, v)
     t = np.array([np.pi * 2 / 3, np.pi, np.pi * 4 / 3 ])
+    # t = np.array([np.pi / 2, np.pi, np.pi * 3 / 2])
     D, V, T = np.meshgrid(d, v, t)
     flatten_d = np.reshape(D, [-1, ])
     flatten_v = np.reshape(V, [-1, ])
@@ -113,7 +114,7 @@ def static_region(test_dir, iteration,
         grid, target_values = hj_baseline()
 
     def plot_region(data_reshape, name, k, fig):
-        ax = plt.subplot(1, 4, k+1)
+        ax = plt.subplot(1, 3, k+1)
         data_reshape = data_reshape / np.max(data_reshape)
         data_reshape += 0.15 * np.where(data_reshape==0,
                                         np.zeros_like(data_reshape),
@@ -135,16 +136,15 @@ def static_region(test_dir, iteration,
                        linewidths=3,
                        linestyle='--')
             # ct2.collections[0].set_label('HJ avoid set')
-        ax.set_title(r'$\theta={:.0f}\degree$'.format(30 * (k + 2)))  # Feasibility Indicator $F(s)$,
+        ax.set_title(r'$\theta={:.0f}\degree$'.format(90 * (k + 1)))  # Feasibility Indicator $F(s)$,
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
         if k == 2:
-            ax = plt.subplot(1, 4, k + 2)
             rect0 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='red', linewidth=3, linestyle='--')
             rect1 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='green', linewidth=3)
             rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
-            plt.colorbar(ax, ctf, orientation='horizontal')
+            plt.colorbar(ctf)
             # h, l = ax.get_legend_handles_labels()
             h = (rect0, rect1, rect2)
             l = (r'$\phi_0$ safe set', r'$\phi_{SIS}$ safe set', 'HJ avoidable set')

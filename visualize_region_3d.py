@@ -133,7 +133,7 @@ def static_region(test_dir, iteration,
                        linewidths=3,
                        linestyle='--')
             # ct2.collections[0].set_label('HJ avoid set')
-        ax.set_title(r'$x_3={:.0f}\degree$'.format(30 * (k + 2)))  # Feasibility Indicator $F(s)$,
+        ax.set_title(r'$x_3={:.0f}\degree$'.format(60 * (k + 2)))  # Feasibility Indicator $F(s)$,
         # ax.set_xlabel(r'$x_1$')
         # ax.set_ylabel(r'$x_2$')
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
