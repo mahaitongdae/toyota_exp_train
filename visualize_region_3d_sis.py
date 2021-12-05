@@ -38,7 +38,7 @@ def static_region(test_dir, iteration,
     import json
     import argparse
     import datetime
-    from policy import Policy4Lagrange
+    from policy import Policy4LagrangeSis
     params = json.loads(open(test_dir + '/config.json').read())
     time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     test_log_dir = params['log_dir'] + '/tester/sis-test-region-{}'.format(time_now)
@@ -49,11 +49,11 @@ def static_region(test_dir, iteration,
     for key, val in params.items():
         parser.add_argument("-" + key, default=val)
     args = parser.parse_args()
-    evaluator = Evaluator(Policy4Lagrange, args.env_id, args)
+    evaluator = Evaluator(Policy4LagrangeSis, args.env_id, args)
     evaluator.load_weights(os.path.join(test_dir, 'models'), iteration)
-    brake_model = EmBrakeModel()
-    double_intergrator_model = UpperTriangleModel()
-    air3d_model = Air3dModel()
+    # brake_model = EmBrakeModel()
+    # double_intergrator_model = UpperTriangleModel()
+    # air3d_model = Air3dModel()
     # model_dict = {"UpperTriangle": double_intergrator_model,
     #               "Air3d": air3d_model}
     # model = model_dict.get(args.env_id.split("-")[0])
@@ -91,8 +91,11 @@ def static_region(test_dir, iteration,
     # preprocess_obs = evaluator.preprocessor.np_process_obses(init_obses)
     # flatten_mu = evaluator.policy_with_value.compute_mu(preprocess_obs).numpy()
     # flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
-
-    flatten_phi = model.adaptive_safety_index(init_obses, sigma=0.4,).numpy()
+    sis_paras = evaluator.policy_with_value.get_sis_paras.numpy()
+    flatten_phi = model.adaptive_safety_index(init_obses,
+                                              sigma=sis_paras[0],
+                                              k=sis_paras[1],
+                                              n=sis_paras[2]).numpy()
 
     # if vector:
     #     flatten_cs = np.multiply(flatten_cstr, flatten_mu)
@@ -110,19 +113,19 @@ def static_region(test_dir, iteration,
         grid, target_values = hj_baseline()
 
     def plot_region(data_reshape, name, k, fig):
-        ax = plt.subplot(1, 3, k+1)
+        ax = plt.subplot(1, 4, k+1)
         data_reshape = data_reshape / np.max(data_reshape)
         data_reshape += 0.15 * np.where(data_reshape==0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
-        ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
+        ctf = ax.contourf(Dc, Vc, data_reshape, 50, cmap='rainbow')  #
         plt.axis('equal')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
                    linewidths=3)
         # ct1.collections[0].set_label('Learned')
         x = np.linspace(0, np.pi * 2, 100)
-        ax.plot(5 * np.sin(x), 5 * np.cos(x), linewidth=2, linestyle='--', label='Safe dist', color='red')
+        ax.plot(5 * np.sin(x), 5 * np.cos(x), linewidth=2, linestyle='--', label=r'$\phi_0$ safe set', color='red')
         if baseline:
             ct2 = ax.contour(grid.coordinate_vectors[0],
                        grid.coordinate_vectors[1],
@@ -132,18 +135,20 @@ def static_region(test_dir, iteration,
                        linewidths=3,
                        linestyle='--')
             # ct2.collections[0].set_label('HJ avoid set')
-        ax.set_title(r'$x_3={:.0f}\degree$'.format(30 * (k + 2)))  # Feasibility Indicator $F(s)$,
-        # ax.set_xlabel(r'$x_1$')
-        # ax.set_ylabel(r'$x_2$')
+        ax.set_title(r'$\theta={:.0f}\degree$'.format(30 * (k + 2)))  # Feasibility Indicator $F(s)$,
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
         if k == 2:
-            rect1 = plt.Rectangle((0,0), 1, 1, fc=ctf.collections[0].get_facecolor()[0], ec='green', linewidth=3)
+            ax = plt.subplot(1, 4, k + 2)
+            rect0 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='red', linewidth=3, linestyle='--')
+            rect1 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='green', linewidth=3)
             rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
-            plt.colorbar(ctf)
-            h, l = ax.get_legend_handles_labels()
-            h = h + [rect1,rect2]
-            l = l + ['Feasible region', 'HJ avoid set']
-            # fig.legend(h, l, loc='upper right')
+            plt.colorbar(ax, ctf, orientation='horizontal')
+            # h, l = ax.get_legend_handles_labels()
+            h = (rect0, rect1, rect2)
+            l = (r'$\phi_0$ safe set', r'$\phi_{SIS}$ safe set', 'HJ avoidable set')
+            fig.legend(h, l, loc='upper right')
             # plt.tight_layout(pad=0.5)
             plt.savefig(os.path.join(evaluator.log_dir, name_2d))
             # legfig, legax = plt.subplots(figsize=(7,0.75))
@@ -176,9 +181,9 @@ def static_region(test_dir, iteration,
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    static_region('./results/Air3d/LMAMPC-vector-2021-12-02-01-41-12', 300000,
+    static_region('./results/SisAir3d/LMAMPC-sis-2021-12-05-01-17-41', 300000,
                   bound=(-6., 20., -13., 13.),
-                  baseline=False) #
+                  baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
     # static_region('./results/uppep_triangle/LMAMPC-terminal-2021-11-30-12-40-50', 300000,
     #               bound=(-5., 5., -5., 5.),

@@ -165,7 +165,7 @@ class LMAMPCLearnerSis(object):
             cs_loss=cs_loss.numpy(),
             pg_loss=pg_loss.numpy(),
             sis_loss=sis_loss.numpy(),
-            k_grad_norm=k_grad_norm.numy(),
+            k_grad_norm=k_grad_norm.numpy(),
             pg_grads_norm=pg_grad_norm.numpy(),
             mu_grad_norm=mu_grad_norm.numpy(),
             safety_index_margin=sis_paras[0].numpy(),

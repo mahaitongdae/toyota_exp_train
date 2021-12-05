@@ -191,16 +191,17 @@ class Policy4Lagrange(tf.Module):
 class Policy4LagrangeSis(Policy4Lagrange):
     def __init__(self, args):
         super(Policy4LagrangeSis, self).__init__(args)
-        self.init_sis_paras = args.get('init_sis_paras')
-        k_lr_schedule = args.get('k_lr_schedule')
+        args_dict = vars(args)
+        self.init_sis_paras = args_dict.get('init_sis_paras')
+        k_lr_schedule = args_dict.get('k_lr_schedule')
         k_lr = PolynomialDecay(*k_lr_schedule)
         self.sis_para = SiSParaModel(name='k', init_var=self.init_sis_paras)
         self.k_optimizer = self.tf.keras.optimizers.Adam(k_lr, name='k_opt')
-        self.adaptive_safety_index = args.get('adaptive_safety_index')
+        self.adaptive_safety_index = args_dict.get('adaptive_safety_index')
         self.models += (self.sis_para,)
         self.optimizers += (self.k_optimizer,)
-        self.adaptive_si_interval = args.get('adaptive_si_interval')
-        self.adaptive_si_start = args.get('adaptive_si_start')
+        self.adaptive_si_interval = args_dict.get('adaptive_si_interval')
+        self.adaptive_si_start = args_dict.get('adaptive_si_start')
 
     @tf.function
     def apply_gradients(self, iteration, grads):

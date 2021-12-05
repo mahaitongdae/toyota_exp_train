@@ -203,7 +203,7 @@ class Air3dModelSis(Air3dModel):
     def rollout_out(self, actions):
         with tf.name_scope('model_step') as scope:
             self.actions = self._action_transformation_for_end2end(actions)
-            rewards, constraints = self.compute_rewards(self.obses, self.actions)
+            rewards = self.compute_rewards(self.obses, self.actions)
             old_phi = self.phi
             self.obses = self.f_xu(self.obses, self.actions)
             self.phi = self.adaptive_safety_index(self.obses)

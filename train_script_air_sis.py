@@ -56,7 +56,7 @@ def built_LMAMPC_parser():
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/uppep_triangle/LMAMPC-v2-2021-11-28-23-32-18'
+        test_dir = 'results/SisAir3d/LMAMPC-sis-2021-12-05-02-03-54'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
@@ -90,12 +90,12 @@ def built_LMAMPC_parser():
     parser.add_argument('--env_kwargs_training_task', type=str, default='left')
     parser.add_argument('--obs_dim', default=None)
     parser.add_argument('--act_dim', default=None)
-    parser.add_argument('--con_dim', type=int, default=10)
+    parser.add_argument('--con_dim', type=int, default=5)
 
     # learner
     parser.add_argument('--alg_name', default='LMAMPC-sis')
     parser.add_argument('--M', type=int, default=1)
-    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[10])
+    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[5])
     parser.add_argument('--gamma', type=float, default=1.)
     parser.add_argument('--gradient_clip_norm', type=float, default=10)
     parser.add_argument('--init_punish_factor', type=float, default=10.)
@@ -104,7 +104,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--mu_clip_value', type=float, default=100)
     parser.add_argument('--adaptive_safety_index', type=bool, default=True)
     parser.add_argument('--adaptive_si_start', type=int, default=100000)
-    parser.add_argument('--adaptive_si_interval', type=int, default=20)
+    parser.add_argument('--adaptive_si_interval', type=int, default=10)
     parser.add_argument('--init_sis_paras', type=list, default=[0.3, 1.0, 1.0])  # # margin, k, power
 
     # worker
@@ -133,6 +133,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--policy_lr_schedule', type=list, default=[3e-4, 150000, 1e-5])
     parser.add_argument('--value_lr_schedule', type=list, default=[8e-4, 150000, 1e-5])
     parser.add_argument('--mu_lr_schedule', type=list, default=[3e-6, 150000, 1e-6])
+    parser.add_argument('--k_lr_schedule', type=list, default=[2e-5, 100000, 1e-6])
     parser.add_argument('--num_hidden_layers', type=int, default=2)
     parser.add_argument('--num_hidden_units', type=int, default=256)
     parser.add_argument('--hidden_activation', type=str, default='elu')
@@ -141,7 +142,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--mu_out_activation', type=str, default='softplus')
     parser.add_argument('--mu_out_bias', type=float, default=0.2)
     parser.add_argument('--action_range', type=float, default=None)
-    parser.add_argument('--mu_update_interval', type=int, default=20)
+    parser.add_argument('--mu_update_interval', type=int, default=5)
 
     # preprocessor
     parser.add_argument('--obs_preprocess_type', type=str, default='scale')
@@ -164,7 +165,8 @@ def built_LMAMPC_parser():
 
     # IO
     time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    results_dir = './results/Air3d/{algo}-{time}'.format(algo=parser.parse_args().alg_name, time=time_now)
+    results_dir = './results/SisAir3d/{algo}-{time}'.format(algo=parser.parse_args().alg_name,
+                                                            time=time_now)
     parser.add_argument('--result_dir', type=str, default=results_dir)
     parser.add_argument('--log_dir', type=str, default=results_dir + '/logs')
     parser.add_argument('--model_dir', type=str, default=results_dir + '/models')
