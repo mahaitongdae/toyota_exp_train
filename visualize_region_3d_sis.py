@@ -98,6 +98,13 @@ def static_region(test_dir, iteration,
                                               k=sis_paras[1],
                                               n=sis_paras[2]).numpy()
 
+    flatten_phih = model.adaptive_safety_index(init_obses,
+                                              sigma=1.0,
+                                              k=2.0,
+                                              n=2.0).numpy()
+
+    flatten_phih = flatten_phih.reshape(D.shape)
+
     # if vector:
     #     flatten_cs = np.multiply(flatten_cstr, flatten_mu)
     # else:
@@ -125,6 +132,9 @@ def static_region(test_dir, iteration,
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
                    linewidths=3)
+        ct1 = ax.contour(Dc, Vc, flatten_phih[..., k], levels=0,
+                         colors="grey",
+                         linewidths=3)
         # ct1.collections[0].set_label('Learned')
         x = np.linspace(0, np.pi * 2, 100)
         ax.plot(5 * np.sin(x), 5 * np.cos(x), linewidth=2, linestyle='--', label=r'$\phi_0$ safe set', color='red')
@@ -133,7 +143,7 @@ def static_region(test_dir, iteration,
                        grid.coordinate_vectors[1],
                        target_values[:, :, int(10 * (k + 2))].T,
                        levels=0,
-                       colors="grey",
+                       colors="red",
                        linewidths=3,
                        linestyle='--')
             # ct2.collections[0].set_label('HJ avoid set')
@@ -144,12 +154,14 @@ def static_region(test_dir, iteration,
         name_2d = name + '_' + str(iteration) + '_2d_' + str(k) + '.jpg'
         if k == 2:
             rect0 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='red', linewidth=3, linestyle='--')
-            rect1 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='green', linewidth=3)
-            rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
+            rect1 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
+            rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='green', linewidth=3)
+            rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='red', linewidth=3)
+
             plt.colorbar(ctf)
             # h, l = ax.get_legend_handles_labels()
-            h = (rect0, rect1, rect2)
-            l = (r'$\phi_0$ safe set', r'$\phi_{SIS}$ safe set', 'HJ avoidable set')
+            h = (rect0, rect1, rect2, rect3)
+            l = (r'$\phi_0$ safe set', r'$\phi_h$ safe set', r'$\phi_{SIS}$ safe set', 'HJ avoidable set')
             fig.legend(h, l, loc='upper right')
             # plt.tight_layout(pad=0.5)
             plt.savefig(os.path.join(evaluator.log_dir, name_2d))
