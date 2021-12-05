@@ -99,7 +99,7 @@ def static_region(test_dir, iteration,
                                               n=sis_paras[2]).numpy()
 
     flatten_phih = model.adaptive_safety_index(init_obses,
-                                              sigma=1.0,
+                                              sigma=3.0,
                                               k=2.0,
                                               n=2.0).numpy()
 
