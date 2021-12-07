@@ -8,7 +8,7 @@ from matplotlib.colors import ListedColormap
 from dynamics.models import EmBrakeModel, UpperTriangleModel, Air3dModel
 
 
-def hj_baseline():
+def hj_baseline(timet=5.0):
     import jax
     import jax.numpy as jnp
     import hj_reachability as hj
@@ -22,7 +22,7 @@ def hj_baseline():
     solver_settings = hj.SolverSettings.with_accuracy("very_high",
                                                       hamiltonian_postprocessor=hj.solver.backwards_reachable_tube)
     time = 0.
-    target_time = -5.0
+    target_time = -timet
     target_values = hj.step(solver_settings, dynamics, grid, time, values, target_time).block_until_ready()
     return grid, target_values
 
@@ -104,14 +104,16 @@ def static_region(test_dir, iteration,
     data_dict = {'cs': flatten_cs, 'mu':flatten_mu, 'cstr': flatten_cstr}
     if baseline:
         grid, target_values = hj_baseline()
+        grid1, target_values1 = hj_baseline(timet=10.0)
 
     def plot_region(data_reshape, name):
-        fig, ax = plt.subplots()
+        fig = plt.figure(figsize=[5,6])
+        ax = plt.axes([0.1,0.2,0.8,0.75])
         data_reshape += 0.15 * np.where(data_reshape == 0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
         ct1 = ax.contourf(D, V, data_reshape, cmap='Accent')  # 50
-        plt.colorbar(ct1)
+        # plt.colorbar(ct1)
         ct1.collections[0].set_label('Learned Boundary')
         ax.contour(D, V, data_reshape, levels=0,
                    colors="green",
@@ -123,13 +125,36 @@ def static_region(test_dir, iteration,
                        levels=0,
                        colors="grey",
                        linewidths=3)
+
+            data = np.load('/home/mahaitong/PycharmProjects/toyota_exp_train (copy)/baseline/init_feasible_f1.npy')
+            data2 = np.load('/home/mahaitong/PycharmProjects/toyota_exp_train (copy)/baseline/init_feasible_f0.4.npy')
+            ds = np.linspace(bound[0], bound[1], 100)
+            vs = np.linspace(bound[2], bound[3], 100)
+            Ds, Vs = np.meshgrid(ds, vs)
+            ct3 = ax.contour(Ds,
+                             Vs,
+                             data.T,
+                             levels=0,
+                             colors="cornflowerblue",
+                             linewidths=3)
+            ct2 = ax.contour(Ds,
+                             Vs,
+                             data2.T,
+                             levels=0,
+                             colors="orange",
+                             linewidths=3)
             # ct2.collections[0].set_label('HJ-Reachability Boundary')
         name_2d = name + '_' + str(iteration) + '_2d.jpg'
         ax.set_xlabel(r'$x_1$')
         ax.set_ylabel(r'$x_2$')
         rect1 = plt.Rectangle((0, 0), 1, 1, fc=ct1.collections[0].get_facecolor()[0], ec='green', linewidth=3)
         rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
-        plt.legend((rect1,rect2), ('Feasible region', 'HJ avoid set'), loc='best')
+        rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='orange', linewidth=3)
+        rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
+        ax = plt.axes([0.05, 0.02, 0.9, 0.16])
+        plt.axis('off')
+        ax.legend((rect1,rect2, rect3, rect4), ('Feasible region', 'HJ avoid set', 'Energy-based','MPC-feasiblity')
+                   , loc='lower center',ncol=2, fontsize=15)
         # plt.title('Feasible Region of Double Integrator')
         plt.tight_layout(pad=0.5)
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
