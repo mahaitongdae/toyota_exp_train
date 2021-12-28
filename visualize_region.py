@@ -100,7 +100,7 @@ def static_region(test_dir, iteration,
     plt.rcParams.update({'font.size': 16})
     from mpl_toolkits.mplot3d import Axes3D
 
-    plot_items = ['cs']
+    plot_items = ['mu']
     data_dict = {'cs': flatten_cs, 'mu':flatten_mu, 'cstr': flatten_cstr}
     if baseline:
         grid, target_values = hj_baseline()
@@ -158,11 +158,11 @@ def static_region(test_dir, iteration,
         # plt.title('Feasible Region of Double Integrator')
         plt.tight_layout(pad=0.5)
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
-        # figure = plt.figure()
-        # ax = Axes3D(figure)
-        # ax.plot_surface(D, V, data_reshape, rstride=1, cstride=1, cmap='rainbow')
-        # name_3d = name + '_' + str(iteration) + '_3d.jpg'
-        # plt.savefig(os.path.join(evaluator.log_dir, name_3d))
+        figure = plt.figure()
+        ax = Axes3D(figure)
+        ax.plot_surface(D, V, data_reshape, rstride=1, cstride=1, cmap='rainbow')
+        name_3d = name + '_' + str(iteration) + '_3d.jpg'
+        plt.savefig(os.path.join(evaluator.log_dir, name_3d))
 
 
     for plot_item in plot_items:
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     #               bound=(-6., 20., -10., 10.),
     #               baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
-    static_region('./results/uppep_triangle/LMAMPC-terminal-2021-12-02-23-07-17', 300000,
+    static_region('./results/uppep_triangle/LMAMPC-terminal-2021-12-03-00-04-06', 0,
                   bound=(-5., 5., -5., 5.),
                   vector=False,
                   baseline=True)  #

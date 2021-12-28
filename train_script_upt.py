@@ -22,6 +22,7 @@ from evaluator import Evaluator
 from learners.ampc_lag_terminal import LMAMPCLearnerTerminal
 from learners.ampc_lag_vector import LMAMPCLearner2 as LMAMPCLearnerVector
 from learners.ampc_baseline import LMAMPCLearner2 as LMBaseline
+from learners.ampc_lag_reach import LMAMPCLearner2 as LMReach
 from optimizer import OffPolicyAsyncOptimizer, SingleProcessOffPolicyOptimizer
 from policy import Policy4Toyota, Policy4Lagrange, Policy4baseline
 from tester import Tester
@@ -37,7 +38,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 NAME2WORKERCLS = dict([('OffPolicyWorker', OffPolicyWorker)])
 NAME2LEARNERCLS = dict([('LMAMPC-terminal', LMAMPCLearnerTerminal),
                         ('LMAMPC-vector', LMAMPCLearnerVector),
-                        ('LMbaseline', LMBaseline)])
+                        ('LMbaseline', LMBaseline),
+                        ('LM-reach', LMReach)])
 NAME2BUFFERCLS = dict([('normal', ReplayBuffer), ('None', None)])
 NAME2OPTIMIZERCLS = dict([('OffPolicyAsync', OffPolicyAsyncOptimizer),
                           ('SingleProcessOffPolicy', SingleProcessOffPolicyOptimizer)])
@@ -88,7 +90,7 @@ def built_LMAMPC_parser():
     parser.add_argument('--con_dim', type=int, default=1)
 
     # learner
-    parser.add_argument('--alg_name', default='LMAMPC-terminal')
+    parser.add_argument('--alg_name', default='LM-reach')
     parser.add_argument('--M', type=int, default=1)
     parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[50])
     parser.add_argument('--gamma', type=float, default=1.)

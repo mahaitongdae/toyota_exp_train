@@ -40,7 +40,7 @@ class UpperTriangle(gym.Env):
         return action
 
     def compute_reward(self, obs, action):
-        r = obs[0] ** 2 + obs[1] ** 2 + 10. * action[0] ** 2
+        r = -0.01 * (obs[0] ** 2 + obs[1] ** 2 + 10. * action[0] ** 2)
         return r
 
     def _reset_init_state(self):
