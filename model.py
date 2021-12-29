@@ -22,11 +22,11 @@ class MLPNet(Model):
         super(MLPNet, self).__init__(name=kwargs['name'])
         self.first_ = Dense(num_hidden_units,
                             activation=hidden_activation,
-                            kernel_initializer=tf.keras.initializers.RandomNormal(mean=0, stddev=0.1),
+                            kernel_initializer=tf.keras.initializers.RandomNormal(mean=0, stddev=0.2),
                             dtype=tf.float32)
         self.hidden = Sequential([Dense(num_hidden_units,
                                         activation=hidden_activation,
-                                        kernel_initializer=tf.keras.initializers.RandomNormal(mean=0, stddev=0.1),
+                                        kernel_initializer=tf.keras.initializers.RandomNormal(mean=0, stddev=0.2),
                                         dtype=tf.float32) for _ in range(num_hidden_layers-1)])
         output_activation = kwargs['output_activation'] if kwargs.get('output_activation') else 'linear'
         if 'output_bias' in kwargs.keys():

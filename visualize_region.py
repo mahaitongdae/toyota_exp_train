@@ -92,15 +92,16 @@ def static_region(test_dir, iteration,
         flatten_cs = np.multiply(flatten_cstr, flatten_mu)
     else:
         con_dim = -args.con_dim
-        flatten_cstr = flatten_cstr[:, con_dim:]
-        flatten_cs = np.multiply(flatten_cstr, flatten_mu)
+        # flatten_cstr = flatten_cstr[:, con_dim:]
+        flatten_cstr = np.max(flatten_cstr, axis=1)
+        flatten_cs = np.multiply(flatten_cstr, flatten_mu.squeeze())
     flatten_cs = flatten_cs / np.max(flatten_cs)
 
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 16})
     from mpl_toolkits.mplot3d import Axes3D
 
-    plot_items = ['mu']
+    plot_items = ['mu', 'cstr']
     data_dict = {'cs': flatten_cs, 'mu':flatten_mu, 'cstr': flatten_cstr}
     if baseline:
         grid, target_values = hj_baseline()
@@ -173,7 +174,7 @@ def static_region(test_dir, iteration,
         #     plot_region(data_reshape, plot_item + '_' + str(k))
 
         if sum:
-            data_k = np.sum(data, axis=1)
+            data_k = data
             data_reshape = data_k.reshape(D.shape)
             plot_region(data_reshape, plot_item + '_sum')
 
@@ -185,7 +186,7 @@ if __name__ == '__main__':
     #               bound=(-6., 20., -10., 10.),
     #               baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
-    static_region('./results/uppep_triangle/LMAMPC-terminal-2021-12-03-00-04-06', 0,
+    static_region('./results/uppep_triangle/LM-reach-2021-12-28-21-36-27', 300000,
                   bound=(-5., 5., -5., 5.),
                   vector=False,
                   baseline=True)  #

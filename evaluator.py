@@ -75,7 +75,7 @@ class Evaluator(object):
                 processed_obs = self.preprocessor.tf_process_obses(obs)
                 action = self.policy_with_value.compute_mode(processed_obs[np.newaxis, :])
                 obs, reward, done, info = self.env.step(action.numpy()[0])
-                reward_info_dict_list.append(info['reward_info'])
+                # reward_info_dict_list.append(info['reward_info'])
                 if render: self.env.render()
                 reward_list.append(reward)
                 action_list.append(action[0])
@@ -84,7 +84,7 @@ class Evaluator(object):
                 processed_obs = self.preprocessor.tf_process_obses(obs)
                 action = self.policy_with_value.compute_mode(processed_obs[np.newaxis, :])
                 obs, reward, done, info = self.env.step(action.numpy()[0])
-                reward_info_dict_list.append(info['reward_info'])
+                # reward_info_dict_list.append(info['reward_info'])
                 if render: self.env.render()
                 reward_list.append(reward)
         episode_return = sum(reward_list)
@@ -94,10 +94,10 @@ class Evaluator(object):
         # plt.figure(1)
         # plt.plot(range(len(action_list)), action_list)
         # plt.show()
-        for key in reward_info_dict_list[0].keys():
-            info_key = list(map(lambda x: x[key], reward_info_dict_list))
-            mean_key = sum(info_key) / len(info_key)
-            info_dict.update({key: mean_key})
+        # for key in reward_info_dict_list[0].keys():
+        #     info_key = list(map(lambda x: x[key], reward_info_dict_list))
+        #     mean_key = sum(info_key) / len(info_key)
+        #     info_dict.update({key: mean_key})
         info_dict.update(dict(episode_return=episode_return,
                               episode_len=episode_len))
         return info_dict

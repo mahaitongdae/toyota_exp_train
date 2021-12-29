@@ -8,11 +8,11 @@ class UpperTriangle(gym.Env):
         metadata = {'render.modes': ['human']}
         self.step_length = 0.1  # ms
         self.action_number = 1
-        self.action_space = gym.spaces.Box(low=-0.5, high=0.5, shape=(self.action_number,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(self.action_number,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(np.full([2,], -float('inf')),np.full([2,], float('inf')), dtype=np.float32)
         self.obs = self._reset_init_state()
-        self.A = np.array([[1., 1.],[0, 1.]])
-        self.B = np.array([[0],[1.]])
+        self.A = np.array([[1., self.step_length],[0, 1.]])
+        self.B = np.array([[0],[self.step_length]])
 
 
     def reset(self):
@@ -28,8 +28,8 @@ class UpperTriangle(gym.Env):
         reward = self.compute_reward(self.obs, self.action)
         self.obs = (np.matmul(self.A, self.obs[:, np.newaxis]) + np.matmul(self.B, self.action[:, np.newaxis])).reshape([-1,])
         constraint = np.max(np.abs(self.obs)) - 5.
-        done = True if constraint > 0 else False
-        info = dict(reward_info=dict(reward=reward, constraints=float(constraint)))
+        done = True if constraint > 3. else False
+        info = dict(reward=reward, cost=float(constraint))
         self.cstr = constraint
         return self.obs, reward, done, info # s' r
 
@@ -40,12 +40,12 @@ class UpperTriangle(gym.Env):
         return action
 
     def compute_reward(self, obs, action):
-        r = -0.01 * (obs[0] ** 2 + obs[1] ** 2 + 10. * action[0] ** 2)
+        r = - 0.01 * ((obs[0]) ** 2 + (obs[1]) ** 2 + 10. * action[0] ** 2)
         return r
 
     def _reset_init_state(self):
-        d = -10. * np.random.random() + 5
-        v = -10. * np.random.random() + 5
+        d = -10. * np.random.random() + 5.
+        v = -10. * np.random.random() + 5.
         return np.array([d,v])
 
     def seed(self, seed=None):
@@ -63,10 +63,10 @@ class UpperTriangle(gym.Env):
             plt.axis("equal")
             plt.axis('off')
 
-            ax.add_patch(plt.Rectangle((-5, -5), 10, 10, edgecolor='black', facecolor='none'))
+            ax.add_patch(plt.Rectangle((-5., -5.), 10, 10, edgecolor='black', facecolor='none'))
             plt.scatter(self.obs[0], self.obs[1])
 
-            text_x, text_y = -5, 5
+            text_x, text_y = -5., 5.
             plt.text(text_x, text_y, 'x: {:.2f}'.format(self.obs[0]))
             plt.text(text_x, text_y - 1, 'y: {:.2f}'.format(self.obs[1]))
             plt.text(text_x, text_y - 2, 'action: {:.2f}'.format(self.action[0]))

@@ -98,14 +98,15 @@ def static_region(test_dir, iteration,
         flatten_cs = np.multiply(flatten_cstr, flatten_mu)
     else:
         con_dim = -args.con_dim
-        flatten_cstr = flatten_cstr[:, con_dim:]
-        flatten_cs = np.multiply(flatten_cstr, flatten_mu)
+        # flatten_cstr = flatten_cstr[:, con_dim:]
+        flatten_cstr = np.max(flatten_cstr, axis=1)
+        flatten_cs = np.multiply(flatten_cstr, flatten_mu.squeeze())
     # flatten_cs = flatten_cs / np.max(flatten_cs)
 
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
-    plot_items = ['cs']
+    plot_items = ['cstr']
     data_dict = {'cs': flatten_cs, 'mu':flatten_mu, 'cstr': flatten_cstr}
     if baseline:
         grid, target_values = hj_baseline()
@@ -113,9 +114,9 @@ def static_region(test_dir, iteration,
     def plot_region(data_reshape, name, k, fig):
         ax = plt.subplot(1, 3, k+1)
         data_reshape = data_reshape / np.max(data_reshape)
-        data_reshape += 0.15 * np.where(data_reshape==0,
-                                        np.zeros_like(data_reshape),
-                                        np.ones_like(data_reshape))
+        # data_reshape += 0.15 * np.where(data_reshape==0,
+        #                                 np.zeros_like(data_reshape),
+        #                                 np.ones_like(data_reshape))
         ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
         plt.axis('equal')
         plt.axis('off')
@@ -169,7 +170,7 @@ def static_region(test_dir, iteration,
     for plot_item in plot_items:
         data = data_dict.get(plot_item)
         if sum:
-            data_k = np.sum(data, axis=1)
+            data_k = data
             data_reshape = data_k.reshape(D.shape)
             for k in range(data_reshape.shape[-1]):
                 plot_region(data_reshape[..., k], plot_item + '_sum', k, fig)
@@ -178,7 +179,7 @@ def static_region(test_dir, iteration,
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    static_region('./results/Air3d/LMAMPC-vector-2021-11-29-19-48-32', 300000,
+    static_region('./results/Air3d/LM-reach-2021-12-29-00-30-04', 300000,
                   bound=(-6., 20., -13., 13.),
                   baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
