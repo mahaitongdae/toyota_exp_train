@@ -53,7 +53,7 @@ def built_LMAMPC_parser():
     mode = parser.parse_args().mode
 
     if mode == 'testing':
-        test_dir = 'results/uppep_triangle/LMAMPC-v2-2021-11-28-23-32-18'
+        test_dir = 'results/Air3d/LM-reach-2021-12-30-01-23-58'
         params = json.loads(open(test_dir + '/config.json').read())
         time_now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         test_log_dir = params['log_dir'] + '/tester/test-{}'.format(time_now)
@@ -62,6 +62,7 @@ def built_LMAMPC_parser():
                            test_log_dir=test_log_dir,
                            num_eval_episode=10,
                            eval_log_interval=1,
+                           eval_render=True,
                            fixed_steps=None))
         for key, val in params.items():
             parser.add_argument("-" + key, default=val)
@@ -92,7 +93,7 @@ def built_LMAMPC_parser():
     # learner
     parser.add_argument('--alg_name', default='LM-reach')
     parser.add_argument('--M', type=int, default=1)
-    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[10])
+    parser.add_argument('--num_rollout_list_for_policy_update', type=list, default=[20])
     parser.add_argument('--gamma', type=float, default=1.)
     parser.add_argument('--gradient_clip_norm', type=float, default=10)
     parser.add_argument('--init_punish_factor', type=float, default=10.)
@@ -114,10 +115,10 @@ def built_LMAMPC_parser():
     parser.add_argument('--buffer_log_interval', type=int, default=40000)
 
     # tester and evaluator
-    parser.add_argument('--num_eval_episode', type=int, default=2)
+    parser.add_argument('--num_eval_episode', type=int, default=200)
     parser.add_argument('--eval_log_interval', type=int, default=1)
     parser.add_argument('--fixed_steps', type=int, default=None)
-    parser.add_argument('--eval_render', type=bool, default=True)
+    parser.add_argument('--eval_render', type=bool, default=False)
 
     # policy and model
     parser.add_argument('--value_model_cls', type=str, default='MLP')

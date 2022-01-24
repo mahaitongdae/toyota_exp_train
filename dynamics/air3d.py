@@ -11,8 +11,6 @@ class Air3d(gym.Env):
         self.action_space = gym.spaces.Box(low=-1., high=1., shape=(self.action_number,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(np.full([3,], -float('inf')),np.full([3,], float('inf')), dtype=np.float32)
         self.obs = self._reset_init_state()
-        self.A = np.array([[1., 1.],[0, 1.]])
-        self.B = np.array([[0],[1.]])
 
 
     def reset(self):
@@ -33,10 +31,15 @@ class Air3d(gym.Env):
         self.obs = self.obs + 0.1 * dx
         self.obs[2] = self.obs[2] % (2 * np.pi)
         constraint = 5 - np.linalg.norm(self.obs[:2])
-        done = True if constraint > 0 else False
-        info = dict(reward_info=dict(reward=reward, constraints=float(constraint)))
+        # if constraint > 0:
+        #     done = True
+        if self.obs[0] > 20. or self.obs[0] < -6. or np.abs(self.obs[1]) > 10.:
+            done = True
+        else:
+            done = False
+        info = dict(reward=reward, cost=float(constraint))
         self.cstr = constraint
-        return self.obs, reward, done, info # s' r
+        return self.obs, reward, done, info
 
 
 
@@ -45,7 +48,7 @@ class Air3d(gym.Env):
         return action
 
     def compute_reward(self, obs, action):
-        r = action[0] ** 2
+        r = - 0.1 * action[0] ** 2
         return r
 
     def _reset_init_state(self):

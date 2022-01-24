@@ -179,7 +179,7 @@ def static_region(test_dir, iteration,
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    static_region('./results/Air3d/LM-reach-2021-12-29-00-30-04', 300000,
+    static_region('./results/Air3d/LM-reach-2022-01-22-13-48-58', 250000,
                   bound=(-6., 20., -13., 13.),
                   baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40

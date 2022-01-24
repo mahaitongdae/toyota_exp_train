@@ -8,7 +8,7 @@ from matplotlib.colors import ListedColormap
 from dynamics.models import EmBrakeModel, UpperTriangleModel, Air3dModel
 
 
-def hj_baseline(timet=5.0):
+def hj_baseline(timet=20.0):
     import jax
     import jax.numpy as jnp
     import hj_reachability as hj
@@ -86,7 +86,7 @@ def static_region(test_dir, iteration,
 
     preprocess_obs = evaluator.preprocessor.np_process_obses(init_obses)
     flatten_mu = evaluator.policy_with_value.compute_mu(preprocess_obs).numpy()
-    flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
+    # flatten_cstr = np.clip(flatten_cstr, 0, np.inf)
 
     if vector:
         flatten_cs = np.multiply(flatten_cstr, flatten_mu)
@@ -101,20 +101,20 @@ def static_region(test_dir, iteration,
     plt.rcParams.update({'font.size': 16})
     from mpl_toolkits.mplot3d import Axes3D
 
-    plot_items = ['mu', 'cstr']
+    plot_items = ['cstr']
     data_dict = {'cs': flatten_cs, 'mu':flatten_mu, 'cstr': flatten_cstr}
     if baseline:
         grid, target_values = hj_baseline()
         grid1, target_values1 = hj_baseline(timet=10.0)
 
     def plot_region(data_reshape, name):
-        fig = plt.figure(figsize=[5,6])
+        fig = plt.figure(figsize=[6,6])
         ax = plt.axes([0.1,0.2,0.8,0.75])
         data_reshape += 0.15 * np.where(data_reshape == 0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
         ct1 = ax.contourf(D, V, data_reshape, cmap='Accent')  # 50
-        # plt.colorbar(ct1)
+        plt.colorbar(ct1)
         ct1.collections[0].set_label('Learned Boundary')
         ax.contour(D, V, data_reshape, levels=0,
                    colors="green",
@@ -127,7 +127,7 @@ def static_region(test_dir, iteration,
                        colors="grey",
                        linewidths=3)
 
-            data = np.load('/home/mahaitong/PycharmProjects/toyota_exp_train (copy)/baseline/init_feasible_f1.npy')
+            data = np.load('/home/mahaitong/PycharmProjects/toyota_exp_train (copy)/baseline/init_feasible_f0.8.npy')
             data2 = np.load('/home/mahaitong/PycharmProjects/toyota_exp_train (copy)/baseline/init_feasible_f0.4.npy')
             ds = np.linspace(bound[0], bound[1], 100)
             vs = np.linspace(bound[2], bound[3], 100)
@@ -154,7 +154,7 @@ def static_region(test_dir, iteration,
         rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
         ax = plt.axes([0.05, 0.02, 0.9, 0.16])
         plt.axis('off')
-        ax.legend((rect1,rect2, rect3, rect4), ('Feasible region', 'HJ avoid set', 'Energy-based','MPC-feasiblity')
+        ax.legend((rect1,rect2, rect3, rect4), (r'$Learned \mathcal{S}_F^{\pi}$', 'HJ Viability Kernel', 'MPC-CBF', 'MPC-Terminal') #  , rect3, rect4 , 'Energy-based','MPC-feasiblity'
                    , loc='lower center',ncol=2, fontsize=15)
         # plt.title('Feasible Region of Double Integrator')
         plt.tight_layout(pad=0.5)
