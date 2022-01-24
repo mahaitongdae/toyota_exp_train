@@ -154,7 +154,7 @@ def static_region(test_dir, iteration,
         rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
         ax = plt.axes([0.05, 0.02, 0.9, 0.16])
         plt.axis('off')
-        ax.legend((rect1,rect2, rect3, rect4), (r'$Learned \mathcal{S}_F^{\pi}$', 'HJ Viability Kernel', 'MPC-CBF', 'MPC-Terminal') #  , rect3, rect4 , 'Energy-based','MPC-feasiblity'
+        ax.legend((rect1,rect2, rect3, rect4), (r'$Learned \mathcal{S}_f^{\pi}$', 'HJ Viability Kernel', 'MPC-CBF', 'MPC-Terminal') #  , rect3, rect4 , 'Energy-based','MPC-feasiblity'
                    , loc='lower center',ncol=2, fontsize=15)
         # plt.title('Feasible Region of Double Integrator')
         plt.tight_layout(pad=0.5)
