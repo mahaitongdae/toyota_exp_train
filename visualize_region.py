@@ -109,11 +109,11 @@ def static_region(test_dir, iteration,
 
     def plot_region(data_reshape, name):
         fig = plt.figure(figsize=[6,6])
-        ax = plt.axes([0.1,0.2,0.8,0.75])
+        ax = plt.axes([0.15,0.25,0.75,0.7])
         data_reshape += 0.15 * np.where(data_reshape == 0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
-        ct1 = ax.contourf(D, V, data_reshape, cmap='Accent')  # 50
+        ct1 = ax.contourf(D, V, data_reshape, cmap='Set2')  # 50
         plt.colorbar(ct1)
         ct1.collections[0].set_label('Learned Boundary')
         ax.contour(D, V, data_reshape, levels=0,
@@ -132,30 +132,30 @@ def static_region(test_dir, iteration,
             ds = np.linspace(bound[0], bound[1], 100)
             vs = np.linspace(bound[2], bound[3], 100)
             Ds, Vs = np.meshgrid(ds, vs)
-            ct3 = ax.contour(Ds,
-                             Vs,
-                             data.T,
-                             levels=0,
-                             colors="cornflowerblue",
-                             linewidths=3)
-            ct2 = ax.contour(Ds,
-                             Vs,
-                             data2.T,
-                             levels=0,
-                             colors="orange",
-                             linewidths=3)
+            # ct3 = ax.contour(Ds,
+            #                  Vs,
+            #                  data.T,
+            #                  levels=0,
+            #                  colors="cornflowerblue",
+            #                  linewidths=3)
+            # ct2 = ax.contour(Ds,
+            #                  Vs,
+            #                  data2.T,
+            #                  levels=0,
+            #                  colors="orange",
+            #                  linewidths=3)
             # ct2.collections[0].set_label('HJ-Reachability Boundary')
         name_2d = name + '_' + str(iteration) + '_2d.jpg'
         ax.set_xlabel(r'$x_1$')
         ax.set_ylabel(r'$x_2$')
         rect1 = plt.Rectangle((0, 0), 1, 1, fc=ct1.collections[0].get_facecolor()[0], ec='green', linewidth=3)
         rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
-        rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='orange', linewidth=3)
-        rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
-        ax = plt.axes([0.05, 0.02, 0.9, 0.16])
+        # rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='orange', linewidth=3)
+        # rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
+        ax = plt.axes([0.1, 0.02, 0.9, 0.16])
         plt.axis('off')
-        ax.legend((rect1,rect2, rect3, rect4), (r'$Learned \mathcal{S}_f^{\pi}$', 'HJ Viability Kernel', 'MPC-CBF', 'MPC-Terminal') #  , rect3, rect4 , 'Energy-based','MPC-feasiblity'
-                   , loc='lower center',ncol=2, fontsize=15)
+        ax.legend((rect1,rect2), ('Learned Feasible Region', 'HJ Viability Kernel') #  , rect3, rect4 , 'Energy-based','MPC-feasiblity'
+                   , loc='lower center',ncol=1, fontsize=15) # , rect3, rect4 , 'MPC-CBF', 'MPC-Terminal'
         # plt.title('Feasible Region of Double Integrator')
         plt.tight_layout(pad=0.5)
         plt.savefig(os.path.join(evaluator.log_dir, name_2d))
