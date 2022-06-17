@@ -127,8 +127,8 @@ def static_region(test_dir, iteration,
         data_reshape += 0.15 * np.where(data_reshape==0,
                                         np.zeros_like(data_reshape),
                                         np.ones_like(data_reshape))
-        ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
-        plt.axis('equal')
+        # ctf = ax.contourf(Dc, Vc, data_reshape, cmap='Accent')  # 50
+        # plt.axis('equal')
         # plt.axis('off')
         ct1 = ax.contour(Dc, Vc, data_reshape, levels=0,
                    colors="green",
@@ -142,18 +142,16 @@ def static_region(test_dir, iteration,
                        target_values[:, :, int(10 * (k + 2))].T,
                        levels=0,
                        colors="grey",
-                       linewidths=3,
-                       linestyle='--')
+                       linewidths=3, linestyles={'dashed'})
             ax.contour(grid1.coordinate_vectors[0],
                        grid1.coordinate_vectors[1],
                        target_values1[:, :, int(10 * (k + 2))].T,
                        levels=0,
                        colors="orange",
-                       linewidths=3,
-                       linestyle='--')
+                       linewidths=3, linestyles={'dashdot'})
             ax.contour(Dc, Vc, flatten_phi[..., k], levels=0,
                        colors="cornflowerblue",
-                       linewidths=3)
+                       linewidths=3, linestyles={'dotted'})
             # ct2.collections[0].set_label('HJ avoid set')
         ax.set_title(r'$x_3={:.0f}\degree$'.format(60 * (k + 2)))  # Feasibility Indicator $F(s)$,
         # ax.set_xlabel(r'$x_1$')
@@ -162,10 +160,10 @@ def static_region(test_dir, iteration,
         if k == 2:
             # ax = plt.subplot(1, 4, k + 2)
             # plt.axis('off')
-            rect1 = plt.Rectangle((0, 0), 1, 1, fc=ctf.collections[0].get_facecolor()[0], ec='green', linewidth=3)
-            rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3)
-            rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='orange', linewidth=3)
-            rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3)
+            rect1 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='green', linewidth=3)
+            rect2 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='grey', linewidth=3, linestyle='--')
+            rect3 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='orange', linewidth=3, linestyle='-.')
+            rect4 = plt.Rectangle((0, 0), 1, 1, fill=False, ec='cornflowerblue', linewidth=3, linestyle=':')
             # cb = plt.colorbar(ctf, orientation='horizontal')
             h, l = ax.get_legend_handles_labels()
             h = h + [rect1, rect2, rect3, rect4]
