@@ -163,7 +163,7 @@ def static_region(test_dir, iteration,
             plt.colorbar(ctf)
             # h, l = ax.get_legend_handles_labels()
             h = (rect0, rect1, rect2, rect3)
-            l = (r'$\phi_0$ safe set', 'Invariant set before SIS', 'Invariant set after SIS', 'True maximum invariant set')
+            l = (r'$\phi_0$ safe set', r'$Z_\phi$ before SIS (not invariant)', r'$Z_\phi$ set after SIS (invariant)', 'True maximum invariant set')
             # fig.legend(h, l, loc='upper right')
             # plt.tight_layout(pad=0.5)
             plt.savefig(os.path.join(evaluator.log_dir, name_2d))
