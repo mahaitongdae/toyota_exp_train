@@ -197,7 +197,7 @@ def static_region(test_dir, iteration,
 
 if __name__ == '__main__':
     # static_region('./results/toyota3lane/LMAMPC-v2-2021-11-21-23-04-21', 300000)
-    static_region('./results/SisAir3d/LMAMPC-sis-2021-12-05-01-17-41', 300000,
+    static_region('./results/SisAir3d/LMAMPC-sis-2021-12-05-01-17-41', 300000, # todo: haotian visualize the region folder name, iteration
                   bound=(-6., 20., -13., 13.),
                   baseline=True) #
     # LMAMPC - vector - 2021 - 11 - 29 - 21 - 22 - 40
