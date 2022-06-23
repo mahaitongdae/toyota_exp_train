@@ -96,14 +96,14 @@ class LMAMPCLearnerSis(object):
         obses = start_obses
         constraints_list = []
         vios_sum = self.tf.zeros((start_obses.shape[0],))
-        for step in range(self.num_rollout_list_for_policy_update[0]):
+        for step in range(self.num_rollout_list_for_policy_update[0]): # todo: haotian sampling iterations
             processed_obses = self.preprocessor.tf_process_obses(obses)
             actions, _ = self.policy_with_value.compute_action(processed_obses)
             obses, rewards, constraints, vios = self.model.rollout_out(actions)
             constraints_clip = self.tf.clip_by_value(constraints, CONSTRAINTS_CLIP_MINUS, 100)
             constraints_clip = self.tf.expand_dims(constraints_clip, axis=1) if len(constraints_clip.shape) == 1 else constraints_clip
             constraints_list.append(constraints_clip)
-            vios_sum += vios
+            vios_sum += vios # todo: haotian count violations
             rewards_sum += self.preprocessor.tf_process_rewards(rewards)
         constraints_all =self.tf.concat(constraints_list, 1)
         processed_start_obses = self.preprocessor.tf_process_obses(start_obses)
@@ -115,7 +115,8 @@ class LMAMPCLearnerSis(object):
         punish_terms = self.tf.reduce_mean(punish_terms_sum)
         pg_loss = obj_loss + punish_terms
         cs_loss = -self.tf.reduce_mean(cs_sum)
-        sis_loss = self.tf.reduce_mean(vios_sum)
+        sis_loss = self.tf.reduce_mean(vios_sum) # todo: haotian this is loss function of safety index parameters
+        sis_loss += 0 # todo: haotian add a term representing optimality
         constraints = self.tf.reduce_mean(constraints_all)
 
         return obj_loss, punish_terms, cs_loss, pg_loss, constraints, terminal_mu, sis_loss, sis_paras

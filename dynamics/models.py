@@ -207,7 +207,7 @@ class Air3dModelSis(Air3dModel):
             old_phi = self.phi
             self.obses = self.f_xu(self.obses, self.actions)
             self.phi = self.adaptive_safety_index(self.obses)
-            constraints = self.phi - tf.stop_gradient(old_phi)
+            constraints = self.phi - tf.stop_gradient(old_phi) # todo: haotian inequality constraint violations
             vios = tf.where(constraints>0, constraints, tf.zeros_like(constraints))
             return self.obses, rewards, constraints, vios
 
@@ -216,7 +216,7 @@ class Air3dModelSis(Air3dModel):
 
     def compute_rewards(self, obses, actions):
         actions = tf.cast(actions, dtype=tf.float32)
-        rewards = - tf.square(actions[:, 0])
+        rewards = - tf.square(actions[:, 0]) # todo: haotian turn as small as possible square of control input
         return rewards
 
     def adaptive_safety_index(self, x, sigma=0.04, k=2, n=2):

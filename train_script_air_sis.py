@@ -105,7 +105,8 @@ def built_LMAMPC_parser():
     parser.add_argument('--adaptive_safety_index', type=bool, default=True)
     parser.add_argument('--adaptive_si_start', type=int, default=100000)
     parser.add_argument('--adaptive_si_interval', type=int, default=10)
-    parser.add_argument('--init_sis_paras', type=list, default=[0.3, 1.0, 1.0])  # # margin, k, power
+    parser.add_argument('--init_sis_paras', type=list, default=[0.3, 1.0, 1.0])  # # sigma, k, n
+    #\phi = \sigma + d_min^n-d^n-k \dot d todo: haotian max iterations
 
     # worker
     parser.add_argument('--batch_size', type=int, default=30)
@@ -130,10 +131,10 @@ def built_LMAMPC_parser():
     parser.add_argument('--value_model_cls', type=str, default='MLP')
     parser.add_argument('--policy_model_cls', type=str, default='MLP')
     parser.add_argument('--mu_model_cls', type=str, default='MLP')
-    parser.add_argument('--policy_lr_schedule', type=list, default=[3e-4, 150000, 1e-5])
+    parser.add_argument('--policy_lr_schedule', type=list, default=[3e-4, 150000, 1e-5]) # todo: haotian learning rate
     parser.add_argument('--value_lr_schedule', type=list, default=[8e-4, 150000, 1e-5])
     parser.add_argument('--mu_lr_schedule', type=list, default=[3e-6, 150000, 1e-6])
-    parser.add_argument('--k_lr_schedule', type=list, default=[2e-5, 100000, 1e-6])
+    parser.add_argument('--k_lr_schedule', type=list, default=[2e-5, 100000, 1e-6]) # todo: haotian learning rate
     parser.add_argument('--num_hidden_layers', type=int, default=2)
     parser.add_argument('--num_hidden_units', type=int, default=256)
     parser.add_argument('--hidden_activation', type=str, default='elu')
@@ -153,10 +154,10 @@ def built_LMAMPC_parser():
 
     # optimizer (PABAL)
     parser.add_argument('--max_sampled_steps', type=int, default=0)
-    parser.add_argument('--max_iter', type=int, default=300000)
-    parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--num_learners', type=int, default=20)
-    parser.add_argument('--num_buffers', type=int, default=8)
+    parser.add_argument('--max_iter', type=int, default=300000) # todo: haotian max iterations >150000
+    parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--num_learners', type=int, default=3)
+    parser.add_argument('--num_buffers', type=int, default=1)
     parser.add_argument('--max_weight_sync_delay', type=int, default=300)
     parser.add_argument('--grads_queue_size', type=int, default=30)
     parser.add_argument('--eval_interval', type=int, default=10000)
@@ -193,7 +194,7 @@ def main(alg_name):
     args = built_parser(alg_name)
     logger.info('begin training agents with parameter {}'.format(str(args)))
     if args.mode == 'training':
-        ray.init(object_store_memory=1024*1024*1024)
+        ray.init(object_store_memory=2048*1024*1024)
         os.makedirs(args.result_dir)
         with open(args.result_dir + '/config.json', 'w', encoding='utf-8') as f:
             json.dump(vars(args), f, ensure_ascii=False, indent=4)
@@ -223,4 +224,4 @@ def main(alg_name):
 
 
 if __name__ == '__main__':
-    main('LMAMPC')
+    main('LMAMPC') # todo: haotian use this file to train
